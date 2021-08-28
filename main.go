@@ -1,30 +1,32 @@
 package main
 
+import (
+	"fmt"
+)
+
 // "github.com/gen2brain/raylib-go/raylib"
 
 func main() {
 	b := NewBoard()
-	err := b.Add_Node([2]int{1, 2})
-	err = b.Add_Node([2]int{2, 2})
-	err = b.Connect_Nodes(b.nodes[0], b.nodes[1])
-	if err != nil {
-		panic(err)
-	}
+	b.SetSize([2]int{100, 100})
+	b.Set_Node_Radius(3)
+	b.Naive_Fill()
+	fmt.Println(b)
 	/*
-	raylib.InitWindow(800, 450, "raylib [core] example - basic window")
+		raylib.InitWindow(800, 450, "raylib [core] example - basic window")
 
-	raylib.SetTargetFPS(60)
+		raylib.SetTargetFPS(60)
 
-	for !raylib.WindowShouldClose() {
-		raylib.BeginDrawing()
+		for !raylib.WindowShouldClose() {
+			raylib.BeginDrawing()
 
-		raylib.ClearBackground(raylib.RayWhite)
+			raylib.ClearBackground(raylib.RayWhite)
 
-		raylib.DrawText("Congrats! You created your first window!", 190, 200, 20, raylib.LightGray)
+			raylib.DrawText("Congrats! You created your first window!", 190, 200, 20, raylib.LightGray)
 
-		raylib.EndDrawing()
-	}
+			raylib.EndDrawing()
+		}
 
-	raylib.CloseWindow()
+		raylib.CloseWindow()
 	*/
 }
