@@ -1,9 +1,13 @@
 package main
 
-import "errors"
+import (
+	"fmt"
+	"errors"
+	"github.com/fogleman/delaunay"
+)
 
 type Vertex struct {
-	position [2]int
+	x, y float64
 }
 
 type Edge struct {
@@ -24,8 +28,8 @@ func (g *Graph) has(v *Vertex) bool {
 	return false
 }
 
-func (g *Graph) Add_Vertex(position [2]int) (*Vertex, error) {
-	v := &Vertex{position: position}
+func (g *Graph) Add_Vertex(x, y float64) (*Vertex, error) {
+	v := &Vertex{x: x, y: y}
 	for _, v_test := range g.vertices {
 		if v.same_as(v_test) {
 			return nil, errors.New("Vertex already exists")
@@ -45,5 +49,15 @@ func (g *Graph) Add_Edge(v1 *Vertex, v2 *Vertex) (*Edge, error) {
 }
 
 func (v1 *Vertex) same_as(v2 *Vertex) bool {
-	return v1.position[0] == v2.position[0] && v1.position[1] == v2.position[1]
+	return v1.x == v2.x && v1.y == v2.y
+}
+
+func (g *Graph) Delaunay() error { // https://mapbox.github.io/delaunator/
+	var points []delaunay.Point
+	for _, v := range g.vertices {
+		points = append(points, delaunay.Point{X: v.x, Y: v.y})
+	}
+	triangulation, err := delaunay.Triangulate(points)
+	fmt.Println(triangulation)
+	return err
 }

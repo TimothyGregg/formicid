@@ -11,8 +11,8 @@ type board struct {
 	graph       *Graph
 	nodes       []*node
 	paths       []*path
-	size_x      int
-	size_y      int
+	size_x      float64
+	size_y      float64
 	node_radius int
 }
 
@@ -29,7 +29,7 @@ type node struct {
 }
 
 func (n node) String() string {
-	return "[" + fmt.Sprint(n.vertex.position[0]) + ", " + fmt.Sprint(n.vertex.position[1]) + "]"
+	return "[" + fmt.Sprint(n.vertex.x) + ", " + fmt.Sprint(n.vertex.y) + "]"
 }
 
 type path struct {
@@ -42,7 +42,7 @@ func NewBoard() *board {
 	return b
 }
 
-func (b *board) SetSize(dims [2]int) error {
+func (b *board) SetSize(dims [2]float64) error {
 	if dims[0] < 1 || dims[1] < 1 {
 		return errors.New("Dimensions for a board cannot be less than 1")
 	}
@@ -68,13 +68,13 @@ func (b *board) has(n *node) bool {
 	return false
 }
 
-func (b *board) Add_Node(position [2]int) error {
-	if position[0] < 0 || position[0] > b.size_x-1 {
+func (b *board) Add_Node(x, y float64) error {
+	if x < 0 || x > b.size_x-1 {
 		return errors.New("X-position outside board boundaries")
-	} else if position[1] < 0 || position[1] > b.size_y-1 {
+	} else if y < 0 || y > b.size_y-1 {
 		return errors.New("Y-position outside board boundaries")
 	}
-	v, err := b.graph.Add_Vertex(position)
+	v, err := b.graph.Add_Vertex(x, y)
 	b.nodes = append(b.nodes, &node{vertex: v})
 	return err
 }
@@ -91,9 +91,9 @@ func (b *board) Connect_Nodes(n1 *node, n2 *node) error {
 	return err
 }
 
-func (node *node) node_distance(x int, y int) float64 {
-	val := math.Pow(float64(node.vertex.position[0]-x), 2)
-	return math.Sqrt(val + math.Pow(float64(node.vertex.position[1]-y), 2))
+func (node *node) node_distance(x, y float64) float64 {
+	val := math.Pow(float64(node.vertex.x-x), 2)
+	return math.Sqrt(val + math.Pow(float64(node.vertex.y-y), 2))
 }
 
 func (b *board) Naive_Fill() error {
@@ -108,8 +108,8 @@ func (b *board) Naive_Fill() error {
 }
 
 func (b *board) add_random_node() bool {
-	guess_x := rand.Intn(b.size_x)
-	guess_y := rand.Intn(b.size_y)
+	guess_x := float64(rand.Intn(int(b.size_x)))
+	guess_y := float64(rand.Intn(int(b.size_y)))
 	good := true
 	for _, node := range b.nodes {
 		if node.node_distance(guess_x, guess_y) < float64(2*b.node_radius) {
@@ -118,7 +118,7 @@ func (b *board) add_random_node() bool {
 		}
 	}
 	if good {
-		b.Add_Node([2]int{guess_x, guess_y})
+		b.Add_Node(guess_x, guess_y)
 	}
 	return good
 }
