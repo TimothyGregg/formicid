@@ -18,10 +18,14 @@ type board struct {
 
 func (b board) String() string {
 	outstr := ""
-	for _, node := range b.nodes {
-		outstr = outstr + node.String() + ", "
+	for i, node := range b.nodes {
+		outstr = outstr + "[" + fmt.Sprint(i) + "]: " + node.String() + "\n"
 	}
-	return outstr[:len(outstr) - 2]
+	outstr = outstr[:len(outstr) - 1]
+	for _, path := range b.paths {
+		outstr = outstr + path.String()
+	}
+	return outstr
 }
 
 type node struct {
@@ -29,11 +33,15 @@ type node struct {
 }
 
 func (n node) String() string {
-	return "[" + fmt.Sprint(n.vertex.x) + ", " + fmt.Sprint(n.vertex.y) + "]"
+	return n.vertex.String()
 }
 
 type path struct {
 	edge *Edge
+}
+
+func (p path) String() string {
+	return p.edge.String()
 }
 
 func NewBoard() *board {

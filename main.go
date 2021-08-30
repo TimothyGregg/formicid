@@ -11,7 +11,7 @@ func main() {
 	b.SetSize([2]float64{100, 100})
 	b.Set_Node_Radius(3)
 	b.Naive_Fill()
-	b.graph.Delaunay()
+	b.graph.Connect_Delaunay()
 	fmt.Println(b)
 	/*
 		raylib.InitWindow(800, 450, "raylib [core] example - basic window")
