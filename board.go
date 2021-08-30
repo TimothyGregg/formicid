@@ -21,9 +21,16 @@ func (b board) String() string {
 	for i, node := range b.nodes {
 		outstr = outstr + "[" + fmt.Sprint(i) + "]: " + node.String() + "\n"
 	}
-	outstr = outstr[:len(outstr) - 1]
 	for _, path := range b.paths {
-		outstr = outstr + path.String()
+		var n1, n2 int
+		for i, node := range b.nodes {
+			if path.edge.v1 == node.vertex {
+				n1 = i
+			} else if path.edge.v2 == node.vertex {
+				n2 = i
+			}
+		}
+		outstr = outstr + fmt.Sprint(n1) + " to " + fmt.Sprint(n2) + "; "
 	}
 	return outstr
 }
@@ -129,4 +136,22 @@ func (b *board) add_random_node() bool {
 		b.Add_Node(guess_x, guess_y)
 	}
 	return good
+}
+
+func (b *board) Connect_Delaunay() error {
+	triangulation, err := b.graph.Delaunay_Triangulate()
+	if err != nil {
+		return err
+	}
+	fmt.Println(triangulation.Triangles)
+	for it := 0; it < len(triangulation.Triangles) / 3; it++ {
+		for jt := 0; jt < 3; jt++ {
+			// fmt.Println(fmt.Sprint(triangulation.Triangles[3*it + jt]) + "-" + fmt.Sprint(triangulation.Triangles[3*it + (1 + jt) % 3]))
+			err = b.Connect_Nodes(b.nodes[triangulation.Triangles[3*it + jt]], b.nodes[triangulation.Triangles[3*it + (1 + jt) % 3]])
+			//if err != nil {
+			//	fmt.Println(err)
+			//}
+		}
+	}
+	return nil
 }

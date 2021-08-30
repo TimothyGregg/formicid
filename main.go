@@ -8,10 +8,10 @@ import (
 
 func main() {
 	b := NewBoard()
-	b.SetSize([2]float64{100, 100})
+	b.SetSize([2]float64{20, 20})
 	b.Set_Node_Radius(3)
 	b.Naive_Fill()
-	b.graph.Connect_Delaunay()
+	b.Connect_Delaunay()
 	fmt.Println(b)
 	/*
 		raylib.InitWindow(800, 450, "raylib [core] example - basic window")
