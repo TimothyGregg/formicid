@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
+
 	"github.com/fogleman/delaunay"
 )
 
