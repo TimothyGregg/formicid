@@ -11,6 +11,10 @@ type Vertex struct {
 	x, y float64
 }
 
+func (v *Vertex) Get() (int, int) {
+	return int(v.x), int(v.y)
+}
+
 func (v Vertex) String() string {
 	return "(" + fmt.Sprint(v.x) + ", " + fmt.Sprint(v.y) + ")"
 }
@@ -21,6 +25,11 @@ func (v1 *Vertex) same_as(v2 *Vertex) bool {
 
 type Edge struct {
 	v1, v2 *Vertex
+}
+
+//Temp
+func (e *Edge) Get() (*Vertex, *Vertex) {
+	return e.v1, e.v2
 }
 
 func (e Edge) String() string {
@@ -41,7 +50,7 @@ func (g Graph) String() string {
 	for i, vertex := range g.vertices {
 		outstr = outstr + "[" + fmt.Sprint(i) + "]: " + vertex.String() + "\n"
 	}
-	for _, edge:= range g.edges {
+	for _, edge := range g.edges {
 		outstr = outstr + edge.String() + "; "
 	}
 	return outstr
@@ -91,9 +100,9 @@ func (g *Graph) Delaunay_Triangulate() (*delaunay.Triangulation, error) {
 
 func (g *Graph) Connect_Delaunay() error { // https://mapbox.github.io/delaunator/
 	triangulation, err := g.Delaunay_Triangulate()
-	for it := 1; it <= len(triangulation.Triangles) / 3; it++ {
+	for it := 1; it <= len(triangulation.Triangles)/3; it++ {
 		for jt := 0; jt < 3; jt++ {
-			g.Add_Edge(g.vertices[triangulation.Triangles[3*it-3 + jt]], g.vertices[triangulation.Triangles[(3*it-2 + jt) % 3]])
+			g.Add_Edge(g.vertices[triangulation.Triangles[3*it-3+jt]], g.vertices[triangulation.Triangles[(3*it-2+jt)%3]])
 		}
 	}
 	return err

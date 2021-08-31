@@ -1,11 +1,21 @@
 package main
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"math"
 	"math/rand"
 )
+
+//Temp
+func (b *board) Get_Nodes() []*node {
+	return b.nodes
+}
+
+//Temp
+func (b *board) Get_Paths() []*path {
+	return b.paths
+}
 
 type board struct {
 	graph       *Graph
@@ -39,12 +49,22 @@ type node struct {
 	vertex *Vertex
 }
 
+//Temp
+func (n *node) Get() (int, int) {
+	return n.vertex.Get()
+}
+
 func (n node) String() string {
 	return n.vertex.String()
 }
 
 type path struct {
 	edge *Edge
+}
+
+//Temp
+func (p *path) Get() (*Vertex, *Vertex) {
+	return p.edge.Get()
 }
 
 func (p path) String() string {
@@ -119,6 +139,7 @@ func (b *board) Naive_Fill() error {
 			}
 		}
 	}
+	fmt.Println(len(b.nodes))
 	return nil
 }
 
@@ -144,10 +165,10 @@ func (b *board) Connect_Delaunay() error {
 		return err
 	}
 	fmt.Println(triangulation.Triangles)
-	for it := 0; it < len(triangulation.Triangles) / 3; it++ {
+	for it := 0; it < len(triangulation.Triangles)/3; it++ {
 		for jt := 0; jt < 3; jt++ {
 			// fmt.Println(fmt.Sprint(triangulation.Triangles[3*it + jt]) + "-" + fmt.Sprint(triangulation.Triangles[3*it + (1 + jt) % 3]))
-			err = b.Connect_Nodes(b.nodes[triangulation.Triangles[3*it + jt]], b.nodes[triangulation.Triangles[3*it + (1 + jt) % 3]])
+			err = b.Connect_Nodes(b.nodes[triangulation.Triangles[3*it+jt]], b.nodes[triangulation.Triangles[3*it+(1+jt)%3]])
 			//if err != nil {
 			//	fmt.Println(err)
 			//}
