@@ -26,6 +26,10 @@ type board struct {
 	node_radius int
 }
 
+func (b *board) GetSize() [2]float64 {
+	return [2]float64{b.size_x, b.size_y}
+}
+
 func (b board) String() string {
 	outstr := ""
 	for i, node := range b.nodes {
