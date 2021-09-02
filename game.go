@@ -32,3 +32,7 @@ func NewGame() *Game {
 	g.generate_teams()
 	return g
 }
+
+func (g *Game) Update() error {
+	return nil
+}

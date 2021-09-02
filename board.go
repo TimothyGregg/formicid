@@ -17,6 +17,10 @@ func (b *board) Get_Paths() []*path {
 	return b.paths
 }
 
+type gameboard interface {
+	update() error
+}
+
 type board struct {
 	graph       *Graph
 	nodes       []*node
