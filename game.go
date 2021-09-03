@@ -1,14 +1,14 @@
 package main
 
-import "gopkg.in/go-playground/colors.v1"
-
-const (
-	Red = "#f43f1a"
+import (
+	. "github.com/TimothyGregg/Antmound/elements"
+	. "github.com/TimothyGregg/Antmound/graphics"
+	"gopkg.in/go-playground/colors.v1"
 )
 
 type Game struct {
-	Board *board
-	Teams []*team
+	Board *Board
+	Teams []*Team
 }
 
 func (g *Game) generate_board() {

@@ -13,19 +13,19 @@ func main() {
 	rl.InitWindow(int32(size[0]), int32(size[1]), "raylib [core] example - basic window")
 
 	rl.SetTargetFPS(60)
-	fmt.Println(len(g.Board.Get_Nodes()))
+	fmt.Println(len(g.Board.Nodes))
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 
 		rl.ClearBackground(rl.RayWhite)
 
-		for _, node := range g.Board.Get_Nodes() {
-			x, y := node.Get()
+		for _, node := range g.Board.Nodes {
+			x, y := node.vertex.Get()
 			rl.DrawCircle(int32(x), int32(y), 10, rl.Lime)
 		}
 
-		for _, path := range g.Board.Get_Paths() {
-			v1, v2 := path.Get()
+		for _, path := range g.Board.Paths {
+			v1, v2 := path.vertices
 			x1, y1 := v1.Get()
 			x2, y2 := v2.Get()
 			rl.DrawLine(int32(x1), int32(y1), int32(x2), int32(y2), rl.Red)
