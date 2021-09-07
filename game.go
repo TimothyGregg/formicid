@@ -14,7 +14,6 @@ type Game struct {
 func (g *Game) generate_board() {
 	g.Board = NewBoard()
 	g.Board.SetSize([2]float64{500, 500}) // TODO Make Variable
-	g.Board.Set_Node_Radius(10)           // TODO Make Variable
 	g.Board.Naive_Fill()
 	g.Board.Connect_Delaunay()
 }

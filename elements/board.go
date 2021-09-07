@@ -9,17 +9,17 @@ import (
 	. "github.com/TimothyGregg/Antmound/graph"
 )
 
-type gameboard interface {
+type Gameboard interface {
 	update() error
 }
 
 type Board struct {
-	graph       *Graph
-	Nodes       []*Node
-	Paths       []*Path
-	Size_x      float64
-	Size_y      float64
-	node_radius int
+	graph          *Graph
+	Nodes          []*Node
+	Paths          []*Path
+	Size_x         float64
+	Size_y         float64
+	radius_channel chan int
 }
 
 type Node struct {
@@ -65,10 +65,29 @@ func (p Path) String() string {
 	return p.edge.String()
 }
 
+func (n *Node) Get() (int, int, float32, float32, float32) {
+	x, y := n.vertex.Get()
+	return x, y, n.population_cap, n.generation_rate, n.radius
+}
+
+func (p *Path) Get() (*Vertex, *Vertex) {
+	return p.edge.Get()
+}
+
 func NewBoard() *Board {
 	b := &Board{}
 	b.graph = &Graph{}
+	b.radius_channel = make(chan int)
+	fmt.Println("here")
+	go b.generate_radii()
+	fmt.Println("There")
 	return b
+}
+
+func (b *Board) generate_radii() {
+	for {
+		b.radius_channel <- rand.Intn(20)
+	}
 }
 
 func (b *Board) SetSize(dims [2]float64) error {
@@ -77,14 +96,6 @@ func (b *Board) SetSize(dims [2]float64) error {
 	}
 	b.Size_x = dims[0]
 	b.Size_y = dims[1]
-	return nil
-}
-
-func (b *Board) Set_Node_Radius(val int) error {
-	if val <= 0 {
-		return errors.New("Node radius must be greater than 0")
-	}
-	b.node_radius = val
 	return nil
 }
 
@@ -97,18 +108,18 @@ func (b *Board) has(n *Node) bool {
 	return false
 }
 
-func (b *Board) Add_Node(x, y float64) error {
+func (b *Board) add_node(x, y float64, radius int) error {
 	if x < 0 || x > b.Size_x-1 {
 		return errors.New("X-position outside board boundaries")
 	} else if y < 0 || y > b.Size_y-1 {
 		return errors.New("Y-position outside board boundaries")
 	}
 	v, err := b.graph.Add_Vertex(x, y)
-	b.Nodes = append(b.Nodes, &Node{vertex: v})
+	b.Nodes = append(b.Nodes, &Node{vertex: v, radius: float32(radius)})
 	return err
 }
 
-func (b *Board) Connect_Nodes(n1 *Node, n2 *Node) error {
+func (b *Board) connect_nodes(n1 *Node, n2 *Node) error {
 	if !b.has(n1) || !b.has(n2) {
 		return errors.New("One or more nodes do not exist on the board")
 	}
@@ -127,7 +138,7 @@ func (node *Node) node_distance(x, y float64) float64 {
 }
 
 func (b *Board) Naive_Fill() error {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100; i++ {
 		for {
 			if !b.add_random_node() {
 				break
@@ -141,15 +152,16 @@ func (b *Board) Naive_Fill() error {
 func (b *Board) add_random_node() bool {
 	guess_x := float64(rand.Intn(int(b.Size_x)))
 	guess_y := float64(rand.Intn(int(b.Size_y)))
+	next_radius := <-b.radius_channel
 	good := true
 	for _, node := range b.Nodes {
-		if node.node_distance(guess_x, guess_y) < float64(2*b.node_radius) {
+		if node.node_distance(guess_x, guess_y) < float64(node.radius+float32(next_radius)) {
 			good = false
 			break
 		}
 	}
 	if good {
-		b.Add_Node(guess_x, guess_y)
+		b.add_node(guess_x, guess_y, next_radius)
 	}
 	return good
 }
@@ -163,7 +175,7 @@ func (b *Board) Connect_Delaunay() error {
 	for it := 0; it < len(triangulation.Triangles)/3; it++ {
 		for jt := 0; jt < 3; jt++ {
 			// fmt.Println(fmt.Sprint(triangulation.Triangles[3*it + jt]) + "-" + fmt.Sprint(triangulation.Triangles[3*it + (1 + jt) % 3]))
-			err = b.Connect_Nodes(b.Nodes[triangulation.Triangles[3*it+jt]], b.Nodes[triangulation.Triangles[3*it+(1+jt)%3]])
+			err = b.connect_nodes(b.Nodes[triangulation.Triangles[3*it+jt]], b.Nodes[triangulation.Triangles[3*it+(1+jt)%3]])
 			//if err != nil {
 			//	fmt.Println(err)
 			//}
