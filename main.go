@@ -2,12 +2,28 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
+	"net/http"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func main() {
+	webpage()
+}
+
+func webpage() {
+	fs := http.FileServer(http.Dir("./web"))
+	http.Handle("/", fs)
+	log.Println("Listening on :3000...")
+	err := http.ListenAndServe(":3000", nil)
+	if err != nil {
+    	log.Fatal(err)
+  	}
+}
+
+func local_draw() {
 	g := NewGame(1920, 1080, 1000)
 
 	size := g.Board.GetSize()
