@@ -76,7 +76,7 @@ func (p *Path) Get() (*Vertex, *Vertex) {
 
 func NewBoard() *Board {
 	b := &Board{}
-	b.graph = &Graph{}
+	b.graph = NewGraph()
 	b.radius_channel = make(chan int)
 	go b.generate_radii()
 	return b
@@ -84,7 +84,7 @@ func NewBoard() *Board {
 
 func (b *Board) generate_radii() {
 	for {
-		b.radius_channel <- rand.Intn(20)
+		b.radius_channel <- 10 // rand.Intn(10) + 10
 	}
 }
 
@@ -122,7 +122,8 @@ func (b *Board) connect_nodes(n1 *Node, n2 *Node) error {
 		return errors.New("One or more nodes do not exist on the board")
 	}
 	e, err := b.graph.Add_Edge(n1.vertex, n2.vertex)
-	if err != nil && err.Error() != "Edge already exists" {
+	_, ok := err.(*EdgeAlreadyExistsError)
+	if err != nil && !ok {
 		return err
 	}
 	b.Paths = append(b.Paths, &Path{edge: e})

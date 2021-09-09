@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"errors"
 	"fmt"
 	"math"
 
@@ -54,6 +53,18 @@ func (e1 *Edge) same_as(e2 *Edge) bool {
 type Graph struct {
 	Vertices []*Vertex
 	Edges    []*Edge
+	Adjacency map[*Vertex][]*connection // We using an Adjaceny List boys. |E|/|V|^2 is typically > 1/64, at least in the graphs I like seeing it make
+}
+
+type connection struct {
+	vertex *Vertex
+	edge *Edge
+}
+
+func NewGraph() *Graph {
+	g := &Graph{}
+	g.Adjacency = make(map[*Vertex][]*connection)
+	return g
 }
 
 func (g Graph) String() string {
@@ -80,7 +91,7 @@ func (g *Graph) Add_Vertex(x, y float64) (*Vertex, error) {
 	v := &Vertex{x: x, y: y}
 	for _, v_test := range g.Vertices {
 		if v.Same_As(v_test) {
-			return v_test, errors.New("Vertex already exists")
+			return v_test, &VertexAlreadyExistsError{vertex: v_test}
 		}
 	}
 	g.Vertices = append(g.Vertices, v)
@@ -88,40 +99,47 @@ func (g *Graph) Add_Vertex(x, y float64) (*Vertex, error) {
 }
 
 func (g *Graph) Add_Edge(v1 *Vertex, v2 *Vertex) (*Edge, error) {
-	if !g.has(v1) || !g.has(v2) {
-		return nil, errors.New("One or more vertices do not exist in the graph")
+	if !g.has(v1) {
+		return nil, &MissingVertexError{vertex: v1}
+	}
+	if !g.has(v2) {
+		return nil, &MissingVertexError{vertex: v2}
 	}
 	e := NewEdge(v1, v2)
-	for _, e_test := range g.Edges {
-		if e.same_as(e_test) {
-			return e_test, errors.New("Edge already exists")
+	for _, c_test := range g.Adjacency[v1] {
+		if e.same_as(c_test.edge) {
+			return c_test.edge, &EdgeAlreadyExistsError{edge: c_test.edge}
 		}
 	}
 	g.Edges = append(g.Edges, e)
+	g.Adjacency[v1] = append(g.Adjacency[v1], &connection{vertex: v2, edge: e})
+	g.Adjacency[v2] = append(g.Adjacency[v2], &connection{vertex: v1, edge: e})
 	return e, nil
 }
 
 func (g *Graph) Remove_Edge(e *Edge) error {
 	for it, edge := range g.Edges {
 		if e.same_as(edge) {
+			// Remove from graph Edge list
 			g.Edges = append(g.Edges[:it], g.Edges[it+1:]...)
+			// Remove from the two Adjacency slices
+			for it, conn := range g.Adjacency[e.v1] {
+				if e.same_as(conn.edge) {
+					g.Adjacency[e.v1] = append(g.Adjacency[e.v1][:it], g.Adjacency[e.v1][it+1:]...)
+					break
+				}
+			}
+			for it, conn := range g.Adjacency[e.v2] {
+				if e.same_as(conn.edge) {
+					g.Adjacency[e.v2] = append(g.Adjacency[e.v2][:it], g.Adjacency[e.v2][it+1:]...)
+					break
+				}
+			}
 			return nil
 		}
 	}
-	return errors.New("Edge not found")
+	return &EdgeNotFoundError{edge: e}
 }
-
-/*
-func (g *Graph) Get_Edge(v1, v2 *Vertex) (*Edge, error) {
-	test_edge := NewEdge(v1, v2)
-	for _, e := range g.Edges {
-		if e.same_as(test_edge) {
-			return e, nil
-		}
-	}
-	return nil, errors.New("Edge not found")
-}
-*/
 
 func (g *Graph) Delaunay_Triangulate() (*delaunay.Triangulation, error) {
 	var points []delaunay.Point
