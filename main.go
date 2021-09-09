@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	g := NewGame()
+	g := NewGame(720, 480, 100)
 
 	size := g.Board.GetSize()
 	rl.InitWindow(int32(size[0]), int32(size[1]), "raylib [core] example - basic window")

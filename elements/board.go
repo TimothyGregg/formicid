@@ -124,11 +124,31 @@ func (b *Board) connect_nodes(n1 *Node, n2 *Node) error {
 		return errors.New("One or more nodes do not exist on the board")
 	}
 	e, err := b.graph.Add_Edge(n1.vertex, n2.vertex)
-	if err != nil {
+	if err != nil && err.Error() != "Edge already exists" {
 		return err
 	}
 	b.Paths = append(b.Paths, &Path{edge: e})
 	return err
+}
+
+func (b *Board) disconnect_path(p *Path) error {
+	for it, p_test := range b.Paths {
+		if p == p_test {
+			b.graph.Remove_Edge(p.edge)
+			b.Paths = append(b.Paths[:it], b.Paths[it+1:]...)
+			return nil
+		}
+	}
+	return errors.New("Path not found")
+}
+
+func (b *Board) find_node(v *Vertex) *Node {
+	for _, n := range b.Nodes {
+		if n.vertex.Same_As(v) {
+			return n
+		}
+	}
+	return nil
 }
 
 func (node *Node) node_distance(x, y float64) float64 {
@@ -137,8 +157,8 @@ func (node *Node) node_distance(x, y float64) float64 {
 	return math.Sqrt(val + math.Pow(float64(ny)-y, 2))
 }
 
-func (b *Board) Naive_Fill() error {
-	for i := 0; i < 100; i++ {
+func (b *Board) Naive_Fill(tries int) error {
+	for i := 0; i < tries; i++ {
 		for {
 			if !b.add_random_node() {
 				break
@@ -167,18 +187,16 @@ func (b *Board) add_random_node() bool {
 }
 
 func (b *Board) Connect_Delaunay() error {
-	triangulation, err := b.graph.Delaunay_Triangulate()
-	if err != nil {
-		return err
+	b.graph.Connect_Delaunay()
+	avg := 0.0
+	for it, e := range b.graph.Edges {
+		v1, v2 := e.Get()
+		b.connect_nodes(b.find_node(v1), b.find_node(v2))
+		avg = avg*(float64(it)-1)/float64(it) + e.Length()/float64(it)
 	}
-	// fmt.Println(triangulation.Triangles)
-	for it := 0; it < len(triangulation.Triangles)/3; it++ {
-		for jt := 0; jt < 3; jt++ {
-			// fmt.Println(fmt.Sprint(triangulation.Triangles[3*it + jt]) + "-" + fmt.Sprint(triangulation.Triangles[3*it + (1 + jt) % 3]))
-			err = b.connect_nodes(b.Nodes[triangulation.Triangles[3*it+jt]], b.Nodes[triangulation.Triangles[3*it+(1+jt)%3]])
-			//if err != nil {
-			//	fmt.Println(err)
-			//}
+	for _, p := range b.Paths {
+		if p.edge.Length() > 3*avg {
+			b.disconnect_path(p)
 		}
 	}
 	return nil
