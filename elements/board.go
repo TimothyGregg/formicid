@@ -78,9 +78,7 @@ func NewBoard() *Board {
 	b := &Board{}
 	b.graph = &Graph{}
 	b.radius_channel = make(chan int)
-	fmt.Println("here")
 	go b.generate_radii()
-	fmt.Println("There")
 	return b
 }
 
@@ -165,7 +163,6 @@ func (b *Board) Naive_Fill(tries int) error {
 			}
 		}
 	}
-	fmt.Println(len(b.Nodes))
 	return nil
 }
 
@@ -192,12 +189,20 @@ func (b *Board) Connect_Delaunay() error {
 	for it, e := range b.graph.Edges {
 		v1, v2 := e.Get()
 		b.connect_nodes(b.find_node(v1), b.find_node(v2))
-		avg = avg*(float64(it)-1)/float64(it) + e.Length()/float64(it)
-	}
-	for _, p := range b.Paths {
-		if p.edge.Length() > 3*avg {
-			b.disconnect_path(p)
+		if it > 0 {
+			avg = avg*(float64(it)-1)/float64(it) + e.Length()/float64(it)
+		} else {
+			avg = e.Length()
 		}
+	}
+	var to_disconnect []*Path
+	for _, p := range b.Paths {
+		if p.edge.Length() > 2.5*avg {
+			to_disconnect = append(to_disconnect, p)
+		}
+	}
+	for _, p := range to_disconnect {
+		b.disconnect_path(p)
 	}
 	return nil
 }

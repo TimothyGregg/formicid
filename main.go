@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -13,7 +11,6 @@ func main() {
 	rl.InitWindow(int32(size[0]), int32(size[1]), "raylib [core] example - basic window")
 
 	rl.SetTargetFPS(60)
-	fmt.Println(len(g.Board.Nodes))
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 
