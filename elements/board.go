@@ -15,14 +15,17 @@ type Gameboard interface {
 
 type Board struct {
 	graph          *Graph
-	Nodes          []*Node
-	Paths          []*Path
+	Nodes          map[int]*Node
+	Paths          map[int]*Path
 	Size_x         float64
 	Size_y         float64
 	radius_channel chan int
+	node_uids      chan int
+	path_uids      chan int
 }
 
 type Node struct {
+	UID             int
 	vertex          *Vertex
 	population_cap  float32
 	generation_rate float32
@@ -30,6 +33,7 @@ type Node struct {
 }
 
 type Path struct {
+	UID  int
 	edge *Edge
 }
 
@@ -77,14 +81,32 @@ func (p *Path) Get() (*Vertex, *Vertex) {
 func NewBoard() *Board {
 	b := &Board{}
 	b.graph = NewGraph()
+	b.Nodes = make(map[int]*Node)
+	b.Paths = make(map[int]*Path)
 	b.radius_channel = make(chan int)
-	go b.generate_radii()
+	go b.start_radii_generation()
+	b.node_uids = make(chan int)
+	go b.start_node_uid_generation()
+	b.path_uids = make(chan int)
+	go b.start_path_uid_generation()
 	return b
 }
 
-func (b *Board) generate_radii() {
+func (b *Board) start_radii_generation() {
 	for {
 		b.radius_channel <- 10 // rand.Intn(10) + 10
+	}
+}
+
+func (b *Board) start_node_uid_generation() {
+	for i := 0; ; i++ {
+		b.node_uids <- i
+	}
+}
+
+func (b *Board) start_path_uid_generation() {
+	for i := 0; ; i++ {
+		b.path_uids <- i
 	}
 }
 
@@ -113,7 +135,8 @@ func (b *Board) add_node(x, y float64, radius int) error {
 		return errors.New("Y-position outside board boundaries")
 	}
 	v, err := b.graph.Add_Vertex(x, y)
-	b.Nodes = append(b.Nodes, &Node{vertex: v, radius: float32(radius)})
+	next_uid := <-b.node_uids
+	b.Nodes[next_uid] = &Node{vertex: v, radius: float32(radius), UID: next_uid}
 	return err
 }
 
@@ -126,15 +149,16 @@ func (b *Board) connect_nodes(n1 *Node, n2 *Node) error {
 	if err != nil && !ok {
 		return err
 	}
-	b.Paths = append(b.Paths, &Path{edge: e})
+	next_uid := <-b.path_uids
+	b.Paths[next_uid] = &Path{edge: e, UID: next_uid}
 	return err
 }
 
-func (b *Board) disconnect_path(p *Path) error {
-	for it, p_test := range b.Paths {
-		if p == p_test {
-			b.graph.Remove_Edge(p.edge)
-			b.Paths = append(b.Paths[:it], b.Paths[it+1:]...)
+func (b *Board) disconnect_path(uid int) error {
+	for _, p_test := range b.Paths {
+		if p_test.UID == uid {
+			b.graph.Remove_Edge(p_test.edge)
+			delete(b.Paths, uid)
 			return nil
 		}
 	}
@@ -196,14 +220,14 @@ func (b *Board) Connect_Delaunay() error {
 			avg = e.Length()
 		}
 	}
-	var to_disconnect []*Path
+	var to_disconnect []int
 	for _, p := range b.Paths {
 		if p.edge.Length() > 2.5*avg {
-			to_disconnect = append(to_disconnect, p)
+			to_disconnect = append(to_disconnect, p.UID)
 		}
 	}
-	for _, p := range to_disconnect {
-		b.disconnect_path(p)
+	for _, uid := range to_disconnect {
+		b.disconnect_path(uid)
 	}
 	return nil
 }

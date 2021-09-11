@@ -51,14 +51,14 @@ func (e1 *Edge) same_as(e2 *Edge) bool {
 }
 
 type Graph struct {
-	Vertices []*Vertex
-	Edges    []*Edge
+	Vertices  []*Vertex
+	Edges     []*Edge
 	Adjacency map[*Vertex][]*connection // We using an Adjaceny List boys. |E|/|V|^2 is typically > 1/64, at least in the graphs I like seeing it make
 }
 
 type connection struct {
+	edge   *Edge
 	vertex *Vertex
-	edge *Edge
 }
 
 func NewGraph() *Graph {

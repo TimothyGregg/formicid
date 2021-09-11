@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	webpage()
+	local_draw()
 }
 
 func webpage() {
@@ -19,16 +19,16 @@ func webpage() {
 	log.Println("Listening on :3000...")
 	err := http.ListenAndServe(":3000", nil)
 	if err != nil {
-    	log.Fatal(err)
-  	}
+		log.Fatal(err)
+	}
 }
 
 func local_draw() {
-	g := NewGame(1920, 1080, 1000)
+	g := NewGame(1820, 980, 1000)
 
 	size := g.Board.GetSize()
 	border := float64(50)
-	rl.InitWindow(int32(size[0] + border), int32(size[1] + border), "raylib [core] example - basic window")
+	rl.InitWindow(int32(size[0]+border), int32(size[1]+border), "raylib [core] example - basic window")
 
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
@@ -38,14 +38,15 @@ func local_draw() {
 
 		for _, node := range g.Board.Nodes {
 			x, y, _, _, r := node.Get()
-			rl.DrawCircle(int32(x + int(border)/2), int32(y + int(border)/2), r, rl.Lime)
+			rl.DrawCircle(int32(x+int(border)/2), int32(y+int(border)/2), r, rl.Lime)
+			rl.DrawText(fmt.Sprint(node.UID), int32(x+int(border)/2), int32(y+int(border)/2), 20, rl.Blue)
 		}
 
 		for _, path := range g.Board.Paths {
 			v1, v2 := path.Get()
 			x1, y1 := v1.Get()
 			x2, y2 := v2.Get()
-			rl.DrawLine(int32(x1 + int(border)/2), int32(y1 + int(border)/2), int32(x2 + int(border)/2), int32(y2 + int(border)/2), rl.Red)
+			rl.DrawLine(int32(x1+int(border)/2), int32(y1+int(border)/2), int32(x2+int(border)/2), int32(y2+int(border)/2), rl.Red)
 		}
 
 		rl.EndDrawing()
