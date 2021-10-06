@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -26,7 +27,7 @@ func webpage() {
 func local_draw() {
 	g := NewGame(1820, 980, 1000)
 
-	size := g.Board.GetSize()
+	size := g.Board.Get_Size()
 	border := float64(50)
 	rl.InitWindow(int32(size[0]+border), int32(size[1]+border), "raylib [core] example - basic window")
 
@@ -38,7 +39,7 @@ func local_draw() {
 
 		for _, node := range g.Board.Nodes {
 			x, y, _, _, r := node.Get()
-			rl.DrawCircle(int32(x+int(border)/2), int32(y+int(border)/2), r, rl.Lime)
+			rl.DrawCircle(int32(x+int(border)/2), int32(y+int(border)/2), float32(r), rl.Lime)
 			rl.DrawText(fmt.Sprint(node.UID), int32(x+int(border)/2), int32(y+int(border)/2), 20, rl.Blue)
 		}
 
@@ -50,6 +51,10 @@ func local_draw() {
 		}
 
 		rl.EndDrawing()
+		start := time.Now()
+		g.Board.Update()
+		fmt.Println(time.Since(start))
+		fmt.Println(int(g.Board.Element.Timer()))
 	}
 
 	rl.CloseWindow()

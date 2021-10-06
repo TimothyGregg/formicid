@@ -12,7 +12,7 @@ type Game struct {
 }
 
 func (g *Game) generate_board(size_x, size_y, fill_tries int) {
-	g.Board = NewBoard()
+	g.Board = New_Board()
 	g.Board.SetSize([2]float64{float64(size_x), float64(size_y)}) // TODO Make Variable
 	g.Board.Naive_Fill(fill_tries)
 	g.Board.Connect_Delaunay()
@@ -21,7 +21,7 @@ func (g *Game) generate_board(size_x, size_y, fill_tries int) {
 func (g *Game) generate_teams() {
 	for i := 0; i < 6; i++ {
 		color, _ := colors.ParseHEX(Red)
-		g.Teams = append(g.Teams, NewTeam(*color.ToRGB()))
+		g.Teams = append(g.Teams, New_Team(*color.ToRGB()))
 	}
 }
 

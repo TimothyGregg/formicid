@@ -3,41 +3,36 @@ package elements
 import (
 	"errors"
 	"fmt"
-	"math"
 	"math/rand"
 
-	. "github.com/TimothyGregg/Antmound/graph"
+	graph "github.com/TimothyGregg/Antmound/graph"
+	tools "github.com/TimothyGregg/Antmound/tools"
 )
 
-type Gameboard interface {
-	update() error
-}
-
 type Board struct {
-	graph          *Graph
-	Nodes          map[int]*Node
-	Paths          map[int]*Path
-	Size_x         float64
-	Size_y         float64
-	radius_channel chan int
-	node_uids      chan int
-	path_uids      chan int
+	Element
+	graph              *graph.Graph
+	Nodes              map[int]*Node
+	Paths              map[int]*Path
+	Size_x             float64
+	Size_y             float64
+	radius_channel     chan int
+	node_uid_generator *tools.UID_Generator
+	edge_uid_generator *tools.UID_Generator
 }
 
-type Node struct {
-	UID             int
-	vertex          *Vertex
-	population_cap  float32
-	generation_rate float32
-	radius          float32
+func (b *Board) Update() error {
+	b.Element.tick()
+	for _, n := range b.Nodes {
+		n.update()
+	}
+	for _, e := range b.Paths {
+		e.update()
+	}
+	return nil
 }
 
-type Path struct {
-	UID  int
-	edge *Edge
-}
-
-func (b *Board) GetSize() [2]float64 {
+func (b *Board) Get_Size() [2]float64 {
 	return [2]float64{b.Size_x, b.Size_y}
 }
 
@@ -61,58 +56,28 @@ func (b Board) String() string {
 	return outstr
 }
 
-func (n Node) String() string {
-	return n.vertex.String()
-}
-
-func (p Path) String() string {
-	return p.edge.String()
-}
-
-func (n *Node) Get() (int, int, float32, float32, float32) {
-	x, y := n.vertex.Get()
-	return x, y, n.population_cap, n.generation_rate, n.radius
-}
-
-func (p *Path) Get() (*Vertex, *Vertex) {
-	return p.edge.Get()
-}
-
-func NewBoard() *Board {
+func New_Board() *Board {
 	b := &Board{}
-	b.graph = NewGraph()
+	b.graph = graph.NewGraph()
 	b.Nodes = make(map[int]*Node)
 	b.Paths = make(map[int]*Path)
 	b.radius_channel = make(chan int)
-	go b.start_radii_generation()
-	b.node_uids = make(chan int)
-	go b.start_node_uid_generation()
-	b.path_uids = make(chan int)
-	go b.start_path_uid_generation()
+	b.node_uid_generator = tools.New_UID_Generator()
+	b.edge_uid_generator = tools.New_UID_Generator()
+	go b.radii_generation()
+
 	return b
 }
 
-func (b *Board) start_radii_generation() {
+func (b *Board) radii_generation() {
 	for {
 		b.radius_channel <- 10 // rand.Intn(10) + 10
 	}
 }
 
-func (b *Board) start_node_uid_generation() {
-	for i := 0; ; i++ {
-		b.node_uids <- i
-	}
-}
-
-func (b *Board) start_path_uid_generation() {
-	for i := 0; ; i++ {
-		b.path_uids <- i
-	}
-}
-
 func (b *Board) SetSize(dims [2]float64) error {
 	if dims[0] < 1 || dims[1] < 1 {
-		return errors.New("Dimensions for a board cannot be less than 1")
+		return errors.New("dimensions for a board cannot be less than 1")
 	}
 	b.Size_x = dims[0]
 	b.Size_y = dims[1]
@@ -130,26 +95,26 @@ func (b *Board) has(n *Node) bool {
 
 func (b *Board) add_node(x, y float64, radius int) error {
 	if x < 0 || x > b.Size_x-1 {
-		return errors.New("X-position outside board boundaries")
+		return errors.New("x-position outside board boundaries")
 	} else if y < 0 || y > b.Size_y-1 {
-		return errors.New("Y-position outside board boundaries")
+		return errors.New("y-position outside board boundaries")
 	}
 	v, err := b.graph.Add_Vertex(x, y)
-	next_uid := <-b.node_uids
-	b.Nodes[next_uid] = &Node{vertex: v, radius: float32(radius), UID: next_uid}
+	next_uid := b.node_uid_generator.Next()
+	b.Nodes[next_uid] = &Node{vertex: v, radius: float64(radius), UID: next_uid}
 	return err
 }
 
 func (b *Board) connect_nodes(n1 *Node, n2 *Node) error {
 	if !b.has(n1) || !b.has(n2) {
-		return errors.New("One or more nodes do not exist on the board")
+		return errors.New("one or more nodes do not exist on the board")
 	}
 	e, err := b.graph.Add_Edge(n1.vertex, n2.vertex)
-	_, ok := err.(*EdgeAlreadyExistsError)
+	_, ok := err.(*graph.EdgeAlreadyExistsError)
 	if err != nil && !ok {
 		return err
 	}
-	next_uid := <-b.path_uids
+	next_uid := b.edge_uid_generator.Next()
 	b.Paths[next_uid] = &Path{edge: e, UID: next_uid}
 	return err
 }
@@ -165,19 +130,13 @@ func (b *Board) disconnect_path(uid int) error {
 	return errors.New("Path not found")
 }
 
-func (b *Board) find_node(v *Vertex) *Node {
+func (b *Board) find_node(v *graph.Vertex) *Node {
 	for _, n := range b.Nodes {
 		if n.vertex.Same_As(v) {
 			return n
 		}
 	}
 	return nil
-}
-
-func (node *Node) node_distance(x, y float64) float64 {
-	nx, ny := node.vertex.Get()
-	val := math.Pow(float64(nx)-x, 2)
-	return math.Sqrt(val + math.Pow(float64(ny)-y, 2))
 }
 
 func (b *Board) Naive_Fill(tries int) error {
@@ -197,7 +156,7 @@ func (b *Board) add_random_node() bool {
 	next_radius := <-b.radius_channel
 	good := true
 	for _, node := range b.Nodes {
-		if node.node_distance(guess_x, guess_y) < float64(node.radius+float32(next_radius)) {
+		if node.node_distance(guess_x, guess_y) < float64(node.radius+float64(next_radius)) {
 			good = false
 			break
 		}
