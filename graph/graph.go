@@ -11,7 +11,7 @@ type Vertex struct {
 	x, y float64
 }
 
-func (v *Vertex) Get() (int, int) {
+func (v *Vertex) Position() (int, int) {
 	return int(v.x), int(v.y)
 }
 
@@ -38,7 +38,7 @@ func NewEdge(v1, v2 *Vertex) *Edge {
 	return e
 }
 
-func (e *Edge) Get() (*Vertex, *Vertex) {
+func (e *Edge) Vertices() (*Vertex, *Vertex) {
 	return e.v1, e.v2
 }
 
@@ -61,7 +61,7 @@ type connection struct {
 	vertex *Vertex
 }
 
-func NewGraph() *Graph {
+func New_Graph() *Graph {
 	g := &Graph{}
 	g.Adjacency = make(map[*Vertex][]*connection)
 	return g

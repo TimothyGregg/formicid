@@ -12,8 +12,8 @@ func (p Path) String() string {
 	return p.edge.String()
 }
 
-func (p *Path) Get() (*graph.Vertex, *graph.Vertex) {
-	return p.edge.Get()
+func (p *Path) Vertices() (*graph.Vertex, *graph.Vertex) {
+	return p.edge.Vertices()
 }
 
 func (p *Path) update() error {

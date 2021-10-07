@@ -12,6 +12,7 @@ import (
 
 func main() {
 	local_draw()
+	webpage()
 }
 
 func webpage() {
@@ -38,16 +39,24 @@ func local_draw() {
 		rl.ClearBackground(rl.RayWhite)
 
 		for _, node := range g.Board.Nodes {
-			x, y, _, _, r := node.Get()
+			x, y, r := node.Get()
 			rl.DrawCircle(int32(x+int(border)/2), int32(y+int(border)/2), float32(r), rl.Lime)
-			rl.DrawText(fmt.Sprint(node.UID), int32(x+int(border)/2), int32(y+int(border)/2), 20, rl.Blue)
+			rl.DrawText(fmt.Sprint(node.ID()), int32(x+int(border)/2), int32(y+int(border)/2), 20, rl.Blue)
 		}
 
-		for _, path := range g.Board.Paths {
-			v1, v2 := path.Get()
-			x1, y1 := v1.Get()
-			x2, y2 := v2.Get()
+		/* for _, path := range g.Board.Paths {
+			v1, v2 := path.Vertices()
+			x1, y1 := v1.Position()
+			x2, y2 := v2.Position()
 			rl.DrawLine(int32(x1+int(border)/2), int32(y1+int(border)/2), int32(x2+int(border)/2), int32(y2+int(border)/2), rl.Red)
+		} */
+
+		for node, arr := range g.Board.Get_node_connections() {
+			for _, other := range arr {
+				x1, y1, _ := node.Get()
+				x2, y2, _ := other.Get()
+				rl.DrawLine(int32(x1+int(border)/2), int32(y1+int(border)/2), int32(x2+int(border)/2), int32(y2+int(border)/2), rl.Red)
+			}
 		}
 
 		rl.EndDrawing()

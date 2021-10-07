@@ -8,8 +8,6 @@ import (
 type Team struct {
 	Element
 	Color                      colors.RGBColor
-	generation_rate_multiplier float32
-	population_cap_multiplier  float32
 	Unit_UID_Generator         *tools.UID_Generator
 }
 
