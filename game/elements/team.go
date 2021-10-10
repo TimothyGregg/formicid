@@ -2,6 +2,7 @@ package elements
 
 import (
 	"encoding/json"
+	"fmt"
 
 	colors "github.com/TimothyGregg/Antmound/game/graphics"
 	tools "github.com/TimothyGregg/Antmound/game/tools"
@@ -9,15 +10,17 @@ import (
 
 type Team struct {
 	Element
-	Color                      colors.Color `json:"color_id"`
+	Color                      colors.Color `json:"-"`
 	unit_UID_Generator         *tools.UID_Generator
 }
 
 func (t *Team) MarshalJSON() ([]byte, error) {
 	type Alias Team
 	return json.Marshal(&struct {
+		Color string `json:"color"`
 		*Alias
 	}{
+		Color: fmt.Sprint(t.Color),
 		Alias: (*Alias)(t),
 	})
 }

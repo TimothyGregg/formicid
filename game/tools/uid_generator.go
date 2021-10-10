@@ -58,7 +58,7 @@ func (g *UID_Generator) init() {
 func (g *UID_Generator) generate() int {
 	if len(*g.uid_pool) == 0 {
 		g.maximum += 1
-		return g.maximum
+		return g.maximum - 1
 	} else {
 		return heap.Pop(g.uid_pool).(int)
 	}

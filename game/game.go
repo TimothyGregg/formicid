@@ -1,15 +1,27 @@
 package game
 
 import (
+	"encoding/json"
+
 	elements "github.com/TimothyGregg/Antmound/game/elements"
 	graphics "github.com/TimothyGregg/Antmound/game/graphics"
 	"github.com/TimothyGregg/Antmound/game/tools"
 )
 
 type Game struct {
-	Board *elements.Board
-	Teams []*elements.Team
+	UID int `json:"uid"`
+	Board *elements.Board `json:"board"`
+	Teams []*elements.Team `json:"teams"`
 	team_uid_generator *tools.UID_Generator
+}
+
+func (g *Game) MarshalJSON() ([]byte, error) {
+	type Alias Game
+	return json.Marshal(&struct {
+		*Alias
+	}{
+		Alias: (*Alias)(g),
+	})
 }
 
 func (g *Game) generate_board(size_x, size_y int) {
@@ -25,8 +37,8 @@ func (g *Game) generate_teams() {
 	}
 }
 
-func New_Game(size_x, size_y, fill_tries int) *Game {
-	g := &Game{}
+func New_Game(uid, size_x, size_y, fill_tries int) *Game {
+	g := &Game{UID: uid}
 	g.team_uid_generator = tools.New_UID_Generator()
 	g.generate_board(size_x, size_y)
 	g.generate_teams()
