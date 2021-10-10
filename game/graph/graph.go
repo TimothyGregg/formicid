@@ -8,19 +8,20 @@ import (
 )
 
 type Vertex struct {
-	x, y float64
+	X int `json:"x"`
+	Y int `json:"y`
 }
 
 func (v *Vertex) Position() (int, int) {
-	return int(v.x), int(v.y)
+	return v.X, v.Y
 }
 
 func (v Vertex) String() string {
-	return "(" + fmt.Sprint(v.x) + ", " + fmt.Sprint(v.y) + ")"
+	return "(" + fmt.Sprint(v.X) + ", " + fmt.Sprint(v.Y) + ")"
 }
 
 func (v1 *Vertex) Same_As(v2 *Vertex) bool {
-	return v1.x == v2.x && v1.y == v2.y
+	return v1.X == v2.X && v1.Y == v2.Y
 }
 
 type Edge struct {
@@ -34,7 +35,7 @@ func (e *Edge) Length() float64 {
 
 func NewEdge(v1, v2 *Vertex) *Edge {
 	e := &Edge{v1: v1, v2: v2}
-	e.length = float64(math.Sqrt(math.Pow(v2.x-v1.x, 2) + math.Pow(v2.y-v1.y, 2)))
+	e.length = float64(math.Sqrt(math.Pow(float64(v2.X-v1.X), 2) + math.Pow(float64(v2.Y-v1.Y), 2)))
 	return e
 }
 
@@ -87,8 +88,8 @@ func (g *Graph) has(v *Vertex) bool {
 	return false
 }
 
-func (g *Graph) Add_Vertex(x, y float64) (*Vertex, error) {
-	v := &Vertex{x: x, y: y}
+func (g *Graph) Add_Vertex(x, y int) (*Vertex, error) {
+	v := &Vertex{X: x, Y: y}
 	for _, v_test := range g.Vertices {
 		if v.Same_As(v_test) {
 			return v_test, &VertexAlreadyExistsError{vertex: v_test}
@@ -144,7 +145,7 @@ func (g *Graph) Remove_Edge(e *Edge) error {
 func (g *Graph) Delaunay_Triangulate() (*delaunay.Triangulation, error) {
 	var points []delaunay.Point
 	for _, v := range g.Vertices {
-		points = append(points, delaunay.Point{X: v.x, Y: v.y})
+		points = append(points, delaunay.Point{X: float64(v.X), Y: float64(v.Y)})
 	}
 	return delaunay.Triangulate(points)
 }

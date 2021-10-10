@@ -1,26 +1,48 @@
 package elements
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
 
-	graph "github.com/TimothyGregg/Antmound/graph"
-	tools "github.com/TimothyGregg/Antmound/tools"
+	graph "github.com/TimothyGregg/Antmound/game/graph"
+	tools "github.com/TimothyGregg/Antmound/game/tools"
 )
 
 type Board struct {
 	Element
 	graph              *graph.Graph
-	Nodes              map[int]*Node
-	Paths              map[int]*Path
+	Nodes              map[int]*Node `json:"-"`
+	Paths              map[int]*Path `json:"-"`
 	node_vertices 	   map[*graph.Vertex]*Node
 	node_connections   map[*Node][]*Node
-	size_x             float64
-	size_y             float64
+	Size_x             int `json:"size_x"`
+	Size_y             int `json:"size_y"`
 	radius_channel     chan int
 	node_uid_generator *tools.UID_Generator
 	edge_uid_generator *tools.UID_Generator
+}
+
+func (b *Board) MarshalJSON() ([]byte, error) {
+	type Alias Board
+	node_array := make([]*Node, 0, len(b.Nodes))
+	for _, node := range b.Nodes {
+		node_array = append(node_array, node)
+	}
+	path_array := make([]*Path, 0, len(b.Paths))
+	for _, path := range b.Paths {
+		path_array = append(path_array, path)
+	}
+	return json.Marshal(&struct {
+		Nodes []*Node `json:"nodes"`
+		Paths []*Path `json:"paths"`
+		*Alias
+	}{
+		Nodes: node_array,
+		Paths: path_array,
+		Alias: (*Alias)(b),
+	})
 }
 
 func (b *Board) Update() error {
@@ -34,8 +56,8 @@ func (b *Board) Update() error {
 	return nil
 }
 
-func (b *Board) Get_Size() [2]float64 {
-	return [2]float64{b.size_x, b.size_y}
+func (b *Board) Get_Size() [2]int {
+	return [2]int{b.Size_x, b.Size_y}
 }
 
 // Temp
@@ -65,6 +87,7 @@ func (b Board) String() string {
 
 func New_Board() *Board {
 	b := &Board{}
+	b.New(0)
 	b.graph = graph.New_Graph()
 	b.Nodes = make(map[int]*Node)
 	b.Paths = make(map[int]*Path)
@@ -84,29 +107,29 @@ func (b *Board) init_radii_generation() {
 	}
 }
 
-func (b *Board) Set_Size(dims [2]float64) error {
+func (b *Board) Set_Size(dims [2]int) error {
 	if dims[0] < 1 || dims[1] < 1 {
 		return errors.New("dimensions for a board cannot be less than 1")
 	}
-	b.size_x = dims[0]
-	b.size_y = dims[1]
+	b.Size_x = dims[0]
+	b.Size_y = dims[1]
 	return nil
 }
 
 func (b *Board) has(n *Node) bool {
-	_, ok := b.Nodes[n.ID()]
+	_, ok := b.Nodes[n.UID]
 	return ok
 }
 
-func (b *Board) add_node(x, y float64, radius int) error {
-	if x < 0 || x > b.size_x-1 {
+func (b *Board) add_node(x, y int, radius int) error {
+	if x < 0 || x > b.Size_x-1 {
 		return errors.New("x-position outside board boundaries")
-	} else if y < 0 || y > b.size_y-1 {
+	} else if y < 0 || y > b.Size_y-1 {
 		return errors.New("y-position outside board boundaries")
 	}
 	v, err := b.graph.Add_Vertex(x, y)
 	next_uid := b.node_uid_generator.Next()
-	b.Nodes[next_uid] = &Node{vertex: v, radius: float64(radius), uid: next_uid}
+	b.Nodes[next_uid] = New_Node(next_uid, radius, v)
 	b.node_vertices[v] = b.Nodes[next_uid]
 	return err
 }
@@ -127,7 +150,7 @@ func (b *Board) connect_nodes(n1 *Node, n2 *Node) error {
 		return err
 	}
 	next_uid := b.edge_uid_generator.Next()
-	b.Paths[next_uid] = &Path{edge: e, UID: next_uid}
+	b.Paths[next_uid] = New_Path(next_uid, e)
 	b.node_connections[n1] = append(b.node_connections[n1], n2)
 	b.node_connections[n2] = append(b.node_connections[n2], n1)
 	return err
@@ -220,12 +243,12 @@ func (b *Board) naive_fill(tries int) error {
 }
 
 func (b *Board) add_random_node() bool {
-	guess_x := float64(rand.Intn(int(b.size_x)))
-	guess_y := float64(rand.Intn(int(b.size_y)))
+	guess_x := rand.Intn(int(b.Size_x))
+	guess_y := rand.Intn(int(b.Size_y))
 	next_radius := <-b.radius_channel
 	good := true
 	for _, node := range b.Nodes {
-		if node.node_distance(guess_x, guess_y) < float64(node.radius+float64(next_radius)) {
+		if node.node_distance(guess_x, guess_y) < float64(node.Radius+next_radius) {
 			good = false
 			break
 		}

@@ -1,18 +1,28 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
 	"net/http"
-	"time"
+	"os"
 
+	game "github.com/TimothyGregg/Antmound/game"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func main() {
-	local_draw()
-	webpage()
+	for _, arg := range os.Args[1:] {
+		switch arg {
+		case "-w":
+			defer webpage()
+		case "-l":
+			local_draw()
+		case "-j":
+			print_json()
+		}
+	}
 }
 
 func webpage() {
@@ -25,11 +35,17 @@ func webpage() {
 	}
 }
 
+func print_json() {
+	g := game.NewGame(100, 100, 10)
+	data, _ := json.MarshalIndent(g.Board, "", "\t")
+	fmt.Println(string(data))
+}
+
 func local_draw() {
-	g := NewGame(1820, 980, 1000)
+	g := game.NewGame(1820, 980, 1000)
 
 	size := g.Board.Get_Size()
-	border := float64(50)
+	border := 50
 	rl.InitWindow(int32(size[0]+border), int32(size[1]+border), "raylib [core] example - basic window")
 
 	rl.SetTargetFPS(60)
@@ -41,7 +57,7 @@ func local_draw() {
 		for _, node := range g.Board.Nodes {
 			x, y, r := node.Get()
 			rl.DrawCircle(int32(x+int(border)/2), int32(y+int(border)/2), float32(r), rl.Lime)
-			rl.DrawText(fmt.Sprint(node.ID()), int32(x+int(border)/2), int32(y+int(border)/2), 20, rl.Blue)
+			rl.DrawText(fmt.Sprint(node.UID), int32(x+int(border)/2+5), int32(y+int(border)/2+5), 20, rl.Blue)
 		}
 
 		/* for _, path := range g.Board.Paths {
@@ -60,10 +76,10 @@ func local_draw() {
 		}
 
 		rl.EndDrawing()
-		start := time.Now()
+		//start := time.Now()
 		g.Board.Update()
-		fmt.Println(time.Since(start))
-		fmt.Println(int(g.Board.Element.Timer()))
+		//fmt.Println(time.Since(start))
+		//fmt.Println(int(g.Board.Element.Timer()))
 	}
 
 	rl.CloseWindow()
