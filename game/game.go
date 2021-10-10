@@ -25,7 +25,7 @@ func (g *Game) generate_teams() {
 	}
 }
 
-func NewGame(size_x, size_y, fill_tries int) *Game {
+func New_Game(size_x, size_y, fill_tries int) *Game {
 	g := &Game{}
 	g.team_uid_generator = tools.New_UID_Generator()
 	g.generate_board(size_x, size_y)

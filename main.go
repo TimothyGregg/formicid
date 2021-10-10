@@ -3,11 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
-	"net/http"
 	"os"
 
+	api "github.com/TimothyGregg/Antmound/api"
 	game "github.com/TimothyGregg/Antmound/game"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -15,8 +14,8 @@ import (
 func main() {
 	for _, arg := range os.Args[1:] {
 		switch arg {
-		case "-w":
-			defer webpage()
+		case "-s":
+			defer api.Server()
 		case "-l":
 			local_draw()
 		case "-j":
@@ -25,24 +24,14 @@ func main() {
 	}
 }
 
-func webpage() {
-	fs := http.FileServer(http.Dir("./web"))
-	http.Handle("/", fs)
-	log.Println("Listening on :3000...")
-	err := http.ListenAndServe(":3000", nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func print_json() {
-	g := game.NewGame(100, 100, 10)
+	g := game.New_Game(100, 100, 10)
 	data, _ := json.MarshalIndent(g.Board, "", "\t")
 	fmt.Println(string(data))
 }
 
 func local_draw() {
-	g := game.NewGame(1820, 980, 1000)
+	g := game.New_Game(1820, 980, 1000)
 
 	size := g.Board.Get_Size()
 	border := 50
