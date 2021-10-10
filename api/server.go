@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/TimothyGregg/Antmound/game"
@@ -52,7 +53,9 @@ func (s *Server) HandleRequests() {
     router.HandleFunc("/", s.homePage)
     router.HandleFunc("/games", s.returnGames).Methods("GET")
     router.HandleFunc("/games/{id}", s.returnGameByID).Methods("GET")
-    log.Fatal(http.ListenAndServe(":10000", router))
+	port := os.Getenv("PORT")
+	fmt.Println("Port:", port)
+    log.Fatal(http.ListenAndServe(port, router))
 }
 
 
