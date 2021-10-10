@@ -54,7 +54,7 @@ func (s *Server) HandleRequests() {
     router.HandleFunc("/games", s.returnGames).Methods("GET")
     router.HandleFunc("/games/{id}", s.returnGameByID).Methods("GET")
 	port := os.Getenv("PORT")
-	fmt.Println("Port:", port)
+	port = ":" + port
     log.Fatal(http.ListenAndServe(port, router))
 }
 
