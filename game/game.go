@@ -3,9 +3,9 @@ package game
 import (
 	"encoding/json"
 
-	elements "github.com/TimothyGregg/Antmound/game/elements"
-	graphics "github.com/TimothyGregg/Antmound/game/graphics"
-	"github.com/TimothyGregg/Antmound/game/tools"
+	elements "github.com/TimothyGregg/formicid/game/elements"
+	graphics "github.com/TimothyGregg/formicid/game/graphics"
+	"github.com/TimothyGregg/formicid/game/tools"
 )
 
 type Game struct {

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"math"
 
-	graph "github.com/TimothyGregg/Antmound/game/graph"
+	graph "github.com/TimothyGregg/formicid/game/graph"
 )
 
 type Node struct {

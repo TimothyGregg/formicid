@@ -3,7 +3,7 @@ package elements
 import (
 	"encoding/json"
 
-	graph "github.com/TimothyGregg/Antmound/game/graph"
+	graph "github.com/TimothyGregg/formicid/game/graph"
 )
 
 type Path struct {

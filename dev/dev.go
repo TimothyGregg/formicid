@@ -6,7 +6,7 @@ import (
 	"math"
 	"os"
 
-	game "github.com/TimothyGregg/Antmound/game"
+	game "github.com/TimothyGregg/formicid/game"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 

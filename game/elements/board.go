@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"math/rand"
 
-	graph "github.com/TimothyGregg/Antmound/game/graph"
-	tools "github.com/TimothyGregg/Antmound/game/tools"
+	graph "github.com/TimothyGregg/formicid/game/graph"
+	tools "github.com/TimothyGregg/formicid/game/tools"
 )
 
 type Board struct {

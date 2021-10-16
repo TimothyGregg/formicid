@@ -8,8 +8,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/TimothyGregg/Antmound/game"
-	"github.com/TimothyGregg/Antmound/game/tools"
+	"github.com/TimothyGregg/formicid/game"
+	"github.com/TimothyGregg/formicid/game/tools"
 	"github.com/gorilla/mux"
 )
 

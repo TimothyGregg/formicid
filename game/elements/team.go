@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	colors "github.com/TimothyGregg/Antmound/game/graphics"
-	tools "github.com/TimothyGregg/Antmound/game/tools"
+	colors "github.com/TimothyGregg/formicid/game/graphics"
+	tools "github.com/TimothyGregg/formicid/game/tools"
 )
 
 type Team struct {
