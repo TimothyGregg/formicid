@@ -31,13 +31,15 @@ func (g *Game) generate_board(size_x, size_y int) {
 	g.Board.Connect()
 }
 
-func (g *Game) generate_teams() {
+func (g *Game) generate_teams() { // Improve to randomize colors
 	for i := 0; i < 6; i++ {
-		g.Teams = append(g.Teams, elements.New_Team(graphics.Red, g.team_uid_generator.Next()))
+		new_number  := g.team_uid_generator.Next()
+		color := graphics.Color(new_number)
+		g.Teams = append(g.Teams, elements.New_Team(color, new_number))
 	}
 }
 
-func New_Game(uid, size_x, size_y, fill_tries int) *Game {
+func New_Game(uid, size_x, size_y int) *Game {
 	g := &Game{UID: uid}
 	g.team_uid_generator = tools.New_UID_Generator()
 	g.generate_board(size_x, size_y)

@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -25,7 +26,7 @@ func New_GameServer() (*GameServer) {
 
 	// build router
 	router := mux.NewRouter().StrictSlash(true)	
-	router.HandleFunc("/", gs.apiPost)
+	router.HandleFunc("/", gs.homePost)
 	router.HandleFunc("/games", gs.returnGames).Methods("GET")
     router.HandleFunc("/games/{id}", gs.returnGameByID).Methods("GET")
 	gs.Handler = router
@@ -41,18 +42,21 @@ func (gs *GameServer) Start() {
 	log.Fatal(gs.ListenAndServe())
 }
 
-func (gs *GameServer) New_Game(size_x, size_y, tries int) {
-	gs.Games = append(gs.Games, game.New_Game(gs.UID_Generator.Next(), size_x, size_y, tries))
+func (gs *GameServer) New_Game(size_x, size_y int) {
+	gs.Games = append(gs.Games, game.New_Game(gs.UID_Generator.Next(), size_x, size_y))
 }
 
-func (gs *GameServer) apiPost(w http.ResponseWriter, r *http.Request) {
-	pr := &PostRequest{r}
-	headerContentType := pr.Header.Get("Content-Type") //https://golangbyexample.com/validate-range-http-body-golang/
-	fmt.Println("Endpoint Hit: post")
+func (gs *GameServer) homePost(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		errorResponse(w, "Bad action", 400)
+	}
+	headerContentType := r.Header.Get("Content-Type") //https://golangbyexample.com/validate-range-http-body-golang/
 	if headerContentType != "application/json" {
 		errorResponse(w, "Content Type is not application/json", http.StatusUnsupportedMediaType)
 		return
 	}
+	
 }
 
 func (gs *GameServer) returnGames(w http.ResponseWriter, r *http.Request) {

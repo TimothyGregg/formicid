@@ -24,13 +24,13 @@ func main() {
 }
 
 func print_json() {
-	g := game.New_Game(0, 100, 100, 10)
+	g := game.New_Game(0, 100, 100)
 	data, _ := json.MarshalIndent(g, "", "\t")
 	fmt.Println(string(data))
 }
 
 func local_draw() {
-	g := game.New_Game(0, 1820, 980, 1000)
+	g := game.New_Game(0, 1820, 980)
 
 	size := g.Board.Get_Size()
 	border := 50
