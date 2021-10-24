@@ -8,10 +8,12 @@ import (
 	"github.com/TimothyGregg/formicid/game/tools"
 )
 
+// An similar concept: https://np.ironhelmet.com/
+
 type Game struct {
-	UID int `json:"uid"`
-	Board *elements.Board `json:"board"`
-	Teams []*elements.Team `json:"teams"`
+	UID                int              `json:"uid"`
+	Board              *elements.Board  `json:"board"`
+	Teams              []*elements.Team `json:"teams"`
 	team_uid_generator *tools.UID_Generator
 }
 
@@ -33,7 +35,7 @@ func (g *Game) generate_board(size_x, size_y int) {
 
 func (g *Game) generate_teams() { // Improve to randomize colors
 	for i := 0; i < 6; i++ {
-		new_number  := g.team_uid_generator.Next()
+		new_number := g.team_uid_generator.Next()
 		color := graphics.Color(new_number)
 		g.Teams = append(g.Teams, elements.New_Team(color, new_number))
 	}
