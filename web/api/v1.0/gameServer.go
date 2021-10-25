@@ -26,17 +26,15 @@ func New_GameServer() *GameServer {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// endpoint creation
-	homeEP := &util.Endpoint{
-		Default: gs.homeHandler,
-	}
+	homeEP := util.NewEndpoint(http.HandlerFunc(gs.homeHandler))
 
 	gameEP := &util.Endpoint{
-		Get: gs.gameGet,
-		Post: gs.gamePost,
+		Get: util.MiddlewareFunc(http.HandlerFunc(gs.gameGet), util.EnforceContentType_JSON),
+		Post: http.HandlerFunc(gs.gamePost),
 	}
 
 	gameIDEP := &util.Endpoint{
-		Get: gs.returnGameByID,
+		Get: util.MiddlewareFunc(http.HandlerFunc(gs.returnGameByID), util.EnforceContentType_JSON),
 	}
 
 	endpoints := map[string]*util.Endpoint{

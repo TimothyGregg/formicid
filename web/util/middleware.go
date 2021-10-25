@@ -24,6 +24,10 @@ func MiddlewareStack(finalHandler http.Handler, m ...Middleware) http.Handler {
 	return wrapped
 }
 
+func MiddlewareFunc(finalHandlerFunc http.HandlerFunc, m ...Middleware) http.Handler {
+	return MiddlewareStack(finalHandlerFunc, m...)
+}
+
 func EnforceContentType_JSON(nextHandler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headerContentType := r.Header.Get("Content-Type") //https://golangbyexample.com/validate-range-http-body-golang/
@@ -48,6 +52,9 @@ func LogToStderr(nextHandler http.Handler) http.Handler {
 		nextHandler.ServeHTTP(w, r)
 	})
 }
+
+// Access-Control-Allow-Origin
+func AddAllowedOrigin(nextHandler http.Handler) http.Handler {return nil}
 
 /*
 	// build router and middleware stack
