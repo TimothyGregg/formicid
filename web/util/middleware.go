@@ -54,7 +54,13 @@ func LogToStderr(nextHandler http.Handler) http.Handler {
 }
 
 // Access-Control-Allow-Origin
-func AddAllowedOrigin(nextHandler http.Handler) http.Handler {return nil}
+func AddAllowedOrigin(nextHandler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://formicid.io")
+
+		nextHandler.ServeHTTP(w, r)
+	})
+}
 
 /*
 	// build router and middleware stack

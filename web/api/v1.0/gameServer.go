@@ -25,27 +25,32 @@ func New_GameServer() *GameServer {
 	// build router and middleware stack
 	router := mux.NewRouter().StrictSlash(true)
 
+	// middleware routing
+	stdMiddleware := []util.Middleware{
+		util.LogToStderr,
+	}
+
+	getMiddleware := []util.Middleware{
+		util.EnforceContentType_JSON,
+		util.AddAllowedOrigin,
+	}
+
 	// endpoint creation
 	homeEP := util.NewEndpoint(http.HandlerFunc(gs.homeHandler))
 
 	gameEP := &util.Endpoint{
-		Get: util.MiddlewareFunc(http.HandlerFunc(gs.gameGet), util.EnforceContentType_JSON),
+		Get: util.MiddlewareFunc(http.HandlerFunc(gs.gameGet), getMiddleware...),
 		Post: http.HandlerFunc(gs.gamePost),
 	}
 
 	gameIDEP := &util.Endpoint{
-		Get: util.MiddlewareFunc(http.HandlerFunc(gs.returnGameByID), util.EnforceContentType_JSON),
+		Get: util.MiddlewareFunc(http.HandlerFunc(gs.returnGameByID), getMiddleware...),
 	}
 
 	endpoints := map[string]*util.Endpoint{
 		"/":       homeEP,
 		"/g":      gameEP,
 		"/g/{id}": gameIDEP,
-	}
-
-	// standard middleware routing
-	stdMiddleware := []util.Middleware{
-		util.LogToStderr,
 	}
 
 	// add endpoints to router with middleware
