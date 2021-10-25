@@ -47,7 +47,6 @@ func New_GameServer() *GameServer {
 
 	// standard middleware routing
 	stdMiddleware := []util.Middleware{
-		util.EnforceContentType_JSON,
 		util.LogToStderr,
 	}
 
