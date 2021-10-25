@@ -10,16 +10,20 @@ const (
 )
 
 type Action struct {
-	action_type ActionType `json:"action_type"`
-	action_details      []byte     `json:"details"`
+	Action_type ActionType `json:"action_type"`
+	Action_name string `json:"action_name"`
+	Action_details      []byte     `json:"details"`
 }
 
-func New_Action(action_bytes []byte) *Action {
+func NewAction(action_bytes []byte) (*Action, error) {
 	a := &Action{}
-	json.Unmarshal(action_bytes, a)
-	return a
+	err := json.Unmarshal(action_bytes, a)
+	if err != nil {
+		return nil, err
+	}
+	return a, nil
 }
 
 func (a *Action) IsType(T ActionType) bool {
-	return a.action_type == T
+	return a.Action_type == T
 }

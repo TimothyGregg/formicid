@@ -7,12 +7,39 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/TimothyGregg/formicid/web/api/v1.0/actions"
 	"github.com/TimothyGregg/formicid/web/util"
 	"github.com/gorilla/mux"
 )
 
 func (gs *GameServer) homePost(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func (gs *GameServer) gamePost(w http.ResponseWriter, r *http.Request) {
+	// get response body
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		util.ErrorResponse(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	// ensure the action is properly formed
+	a, err := actions.NewAction(body)
+	if err != nil {
+		util.ErrorResponse(w, "Malformed action", http.StatusBadRequest)
+	}
+	// perform appropriate action
+	switch a.Action_type {
+	case actions.META:
+		switch a.Action_name {
+		case "addGame":
+			details := struct{
+				Size_x int `json:"size_x"`
+				Size_y int `json:"size_y"`}{}
+			json.Unmarshal(a.Action_details, details)
+			gs.New_Game(details.Size_x, details.Size_y)
+		}
+	}
 }
 
 func (gs *GameServer) gameGet(w http.ResponseWriter, r *http.Request) {
@@ -28,10 +55,10 @@ func (gs *GameServer) homeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Home handler!")
 	_, err := ioutil.ReadAll(r.Body) // body, err
 	if err != nil {
-		util.ErrorResponse(w, "Bad action", 400)
+		util.ErrorResponse(w, "Bad request", http.StatusBadRequest)
+		return
 	}
 	json.NewEncoder(w).Encode("You found the home page!")
-	util.ErrorResponse(w, "Shit", http.StatusTeapot)
 }
 
 func (gs *GameServer) returnGameByID(w http.ResponseWriter, r *http.Request) {

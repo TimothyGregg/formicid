@@ -32,6 +32,7 @@ func New_GameServer() *GameServer {
 
 	gameEP := &util.Endpoint{
 		Get: gs.gameGet,
+		Post: gs.gamePost,
 	}
 
 	gameIDEP := &util.Endpoint{
@@ -44,9 +45,15 @@ func New_GameServer() *GameServer {
 		"/g/{id}": gameIDEP,
 	}
 
-	// Add endpoints to router
+	// standard middleware routing
+	stdMiddleware := []util.Middleware{
+		util.EnforceContentType_JSON,
+		util.LogToStderr,
+	}
+
+	// add endpoints to router with middleware
 	for endpoint_path, endpoint := range endpoints {
-		router.Handle(endpoint_path, endpoint)
+		router.Handle(endpoint_path, util.MiddlewareStack(endpoint, stdMiddleware...))
 	}
 	// assign
 	gs.Handler = router
