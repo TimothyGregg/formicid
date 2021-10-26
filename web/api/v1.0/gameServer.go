@@ -36,16 +36,15 @@ func New_GameServer() *GameServer {
 	}
 
 	// endpoint creation
-	homeEP := util.NewEndpoint(http.HandlerFunc(gs.homeHandler))
+	homeEP := util.NewEndpoint()
+	homeEP.AddHandler(http.MethodGet, http.HandlerFunc(gs.homeHandler))
 
-	gameEP := &util.Endpoint{
-		Get: util.MiddlewareFunc(http.HandlerFunc(gs.gameGet), getMiddleware...),
-		Post: http.HandlerFunc(gs.gamePost),
-	}
+	gameEP := util.NewEndpoint()
+	gameEP.AddHandler(http.MethodGet, util.MiddlewareFunc(http.HandlerFunc(gs.gameGet), getMiddleware...))
+	gameEP.AddHandler(http.MethodPost, http.HandlerFunc(gs.gamePost))
 
-	gameIDEP := &util.Endpoint{
-		Get: util.MiddlewareFunc(http.HandlerFunc(gs.returnGameByID), getMiddleware...),
-	}
+	gameIDEP := util.NewEndpoint()
+	gameIDEP.AddHandler(http.MethodGet, util.MiddlewareFunc(http.HandlerFunc(gs.returnGameByID), getMiddleware...))
 
 	endpoints := map[string]*util.Endpoint{
 		"/":       homeEP,

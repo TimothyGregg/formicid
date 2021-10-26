@@ -1,75 +1,56 @@
 package util
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 )
+
+var	HTMLMethods = [6]string{
+		http.MethodOptions,
+		http.MethodPost,
+		http.MethodGet,
+		http.MethodPut,
+		http.MethodPost,
+		http.MethodDelete,
+	}
 
 type Endpoint struct {
 	http.Handler
-	Default http.Handler
-	Post    http.Handler
-	Get     http.Handler
-	Put     http.Handler
-	Patch   http.Handler
-	Delete  http.Handler
+	allow   []string
+	methods map[string]http.Handler
 }
 
-func NewEndpoint(function http.Handler) *Endpoint {
-	return &Endpoint{Default: function}
+func NewEndpoint() *Endpoint {
+	e := &Endpoint{}
+	e.methods = make(map[string]http.Handler)
+	return e
 }
 
-/*
-func (e *Endpoint) AddHandler(method string, function http.HandlerFunc) error {
-	switch method {
-	case http.MethodPost:
-		e.Post = function
-	case http.MethodGet:
-		e.Get = function
-	case http.MethodPut:
-		e.Put = function
-	case http.MethodPatch:
-		e.Patch = function
-	case http.MethodDelete:
-		e.Delete = function
-	default:
-		return errors.New("this wasn't a valid method, dingus")
+func (e *Endpoint) AddHandler(method string, function http.Handler) error {
+	for _, method_check := range HTMLMethods {
+		if method == method_check {
+			e.methods[method] = function
+			e.allow = append(e.allow, method)
+			return nil
+		}
 	}
-	return nil
+	return errors.New("no valid method")
 }
-*/
 
 func (e *Endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		if e.Post != nil {
-			e.Post.ServeHTTP(w, r)
-			return
-		}
-	case http.MethodGet:
-		if e.Get != nil {
-			e.Get.ServeHTTP(w, r)
-			return
-		}
-	case http.MethodPut:
-		if e.Put != nil {
-			e.Put.ServeHTTP(w, r)
-			return
-		}
-	case http.MethodPatch:
-		if e.Patch != nil {
-			e.Patch.ServeHTTP(w, r)
-			return
-		}
-	case http.MethodDelete:
-		if e.Delete != nil {
-			e.Delete.ServeHTTP(w, r)
-			return
-		}
-	default:
-		if e.Default != nil {
-			e.Default.ServeHTTP(w, r)
+	for method, handler := range e.methods {
+		if r.Method == method {
+			handler.ServeHTTP(w, r)
 			return
 		}
 	}
 	ErrorResponse(w, r.Method + " not accepted at this endpoint", http.StatusMethodNotAllowed)
+}
+
+func (e *Endpoint) OptionsResponse(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "max-age=604800") // 1 week in seconds
+	w.Header().Set("Allow-Control-Allow-Origin", "http://formicid.io")
+	w.Header().Set("Allow", strings.Join(e.allow[:], ", "))
+	w.Header().Set("Access-Control-Allow-Methods", strings.Join(e.allow[:], ", "))
 }
