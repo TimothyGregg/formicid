@@ -47,7 +47,14 @@ func LogToStderr(nextHandler http.Handler) http.Handler {
 		if err != nil {
 			ErrorResponse(w, "bad request", 400)
 		}
-		fmt.Fprintf(os.Stderr, "Method:%s; Body:\"%s\"\n", r.Method, body)
+		header := ""
+		for k, v := range r.Header {
+			header = header + k + ":\n"
+			for _, s := range v {
+				header = "\t" + header + s + "\n"
+			}
+		}
+		fmt.Fprintf(os.Stderr, "Method:%s\nHeaders: %s\nBody:%s\n", r.Method, header, body)
 
 		nextHandler.ServeHTTP(w, r)
 	})
