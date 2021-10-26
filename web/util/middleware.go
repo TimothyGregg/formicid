@@ -51,7 +51,7 @@ func LogToStderr(nextHandler http.Handler) http.Handler {
 		for k, v := range r.Header {
 			header = header + k + ":"
 			for _, s := range v {
-				header = header + s + ", "
+				header = header + s + ","
 			}
 			header = header + "\n"
 		}
