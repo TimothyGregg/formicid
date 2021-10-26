@@ -24,6 +24,7 @@ type Endpoint struct {
 func NewEndpoint() *Endpoint {
 	e := &Endpoint{}
 	e.methods = make(map[string]http.Handler)
+	e.AddHandler(http.MethodOptions, http.HandlerFunc(e.OptionsResponse))
 	return e
 }
 
