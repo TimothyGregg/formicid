@@ -51,7 +51,7 @@ func (e *Endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (e *Endpoint) OptionsResponse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=604800") // 1 week in seconds
-	w.Header().Set("Access-Control-Allow-Origin", "http://www.formicid.io/")
+	w.Header().Set("Access-Control-Allow-Origin", "http://www.formicid.io")
 	w.Header().Set("Allow", strings.Join(e.allow[:], ", "))
 	w.Header().Set("Access-Control-Allow-Methods", strings.Join(e.allow[:], ", "))
 }
