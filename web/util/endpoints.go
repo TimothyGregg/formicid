@@ -55,4 +55,5 @@ func (e *Endpoint) OptionsResponse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "http://www.formicid.io")
 	w.Header().Set("Access-Control-Allow-Methods", strings.Join(e.allow[:], ", "))
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.WriteHeader(http.StatusOK)
 }
