@@ -51,8 +51,9 @@ func LogToStderr(nextHandler http.Handler) http.Handler {
 		for k, v := range r.Header {
 			header = header + k + ":\n"
 			for _, s := range v {
-				header = "\t" + header + s + "\n"
+				header = "\t" + header + s + ", "
 			}
+			header = header + "\n"
 		}
 		fmt.Fprintf(os.Stderr, "Method:%s\nHeaders: %s\nBody:%s\n", r.Method, header, body)
 
