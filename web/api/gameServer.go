@@ -30,7 +30,6 @@ func New_GameServer() *GameServer {
 	}
 
 	getMiddleware := []util.Middleware{
-		util.EnforceContentType_JSON,
 		util.AddAllowedOrigin,
 	}
 

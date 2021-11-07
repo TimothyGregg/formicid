@@ -7,6 +7,15 @@ import (
 	"time"
 )
 
+// 204 No Content
+func Response_NoContent(w http.ResponseWriter, headerContent map[string]string) {
+	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
+	for field, value := range headerContent {
+		w.Header().Set(field, value)
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // 400 Bad Request
 func Response_BadRequest(w http.ResponseWriter, additionalMessages ...string) {
 	// Header
