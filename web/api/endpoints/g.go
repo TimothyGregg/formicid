@@ -34,7 +34,9 @@ func GamePost(s *storage.Store) http.HandlerFunc {
 		a, err := actions.NewAction(body)
 		if err != nil {
 			util.Response_BadRequest(w, "Malformed action")
+			return
 		}
+		fmt.Println("WE GOT TO HERE")
 		// perform appropriate action
 		switch a.Action_type {
 		case actions.META:

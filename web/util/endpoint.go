@@ -19,7 +19,6 @@ type Endpoint struct {
 	http.Handler
 	allow   []string
 	methods map[string]http.Handler
-	standardMiddleware []Middleware
 }
 
 func NewEndpoint() *Endpoint {
