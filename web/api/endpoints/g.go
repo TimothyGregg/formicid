@@ -46,7 +46,8 @@ func GamePost(s *storage.Store) http.HandlerFunc {
 					Size_x int `json:"size_x"`
 					Size_y int `json:"size_y"`}{}
 				json.Unmarshal(a.Action_details, details)
-				s.New_Game(details.Size_x, details.Size_y)
+				fmt.Println("Was this the problem?")
+				//s.New_Game(details.Size_x, details.Size_y)
 			}
 		}
 	}
