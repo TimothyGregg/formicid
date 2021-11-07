@@ -57,9 +57,9 @@ func OptionsResponse(e *Endpoint) http.HandlerFunc {
 		headerContent := make(map[string]string)
 		headerContent["Cache-Control"] = "max-age=604800" // 1 week in seconds
 		headerContent["Allow"] = strings.Join(e.allow[:], ", ")
-		headerContent["Access-Control-Allow-Origin"] = "*"
+		headerContent["Access-Control-Allow-Origin"] = "http://www.formicid.io"
 		headerContent["Access-Control-Allow-Methods"] = strings.Join(e.allow[:], ", ")
-		headerContent["Access-Control-Allow-Headers"] = "Content-Type"
+		headerContent["Access-Control-Allow-Headers"] = "Content-Type, Access-Control-Allow-Origin"
 		Response_NoContent(w, headerContent)
 	}
 }
