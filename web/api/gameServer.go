@@ -1,4 +1,4 @@
-package api
+package server
 
 import (
 	"fmt"
@@ -6,21 +6,20 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/TimothyGregg/formicid/game"
-	"github.com/TimothyGregg/formicid/game/tools"
+	ep "github.com/TimothyGregg/formicid/web/api/endpoints"
+	"github.com/TimothyGregg/formicid/web/api/storage"
 	"github.com/TimothyGregg/formicid/web/util"
 	"github.com/gorilla/mux"
 )
 
 type GameServer struct {
 	http.Server
-	Games         []*game.Game
-	UID_Generator *tools.UID_Generator
+	store *storage.Store
 }
 
 func New_GameServer() *GameServer {
 	gs := &GameServer{}
-	gs.UID_Generator = tools.New_UID_Generator()
+	gs.store = storage.NewStore()
 
 	// build router and middleware stack
 	router := mux.NewRouter().StrictSlash(true)
@@ -37,14 +36,14 @@ func New_GameServer() *GameServer {
 
 	// endpoint creation
 	homeEP := util.NewEndpoint()
-	homeEP.AddHandler(http.MethodGet, http.HandlerFunc(gs.homeHandler))
+	homeEP.AddHandler(http.MethodGet, ep.HomeHandler(gs.store))
 
 	gameEP := util.NewEndpoint()
-	gameEP.AddHandler(http.MethodGet, util.MiddlewareFunc(http.HandlerFunc(gs.gameGet), getMiddleware...))
-	gameEP.AddHandler(http.MethodPost, http.HandlerFunc(gs.gamePost))
+	gameEP.AddHandler(http.MethodGet, util.MiddlewareFunc(ep.GameGet(gs.store), getMiddleware...))
+	gameEP.AddHandler(http.MethodPost, ep.GamePost(gs.store))
 
 	gameIDEP := util.NewEndpoint()
-	gameIDEP.AddHandler(http.MethodGet, util.MiddlewareFunc(http.HandlerFunc(gs.returnGameByID), getMiddleware...))
+	gameIDEP.AddHandler(http.MethodGet, util.MiddlewareFunc(ep.ReturnGameByID(gs.store), getMiddleware...))
 
 	endpoints := map[string]*util.Endpoint{
 		"/":       homeEP,
@@ -69,8 +68,4 @@ func New_GameServer() *GameServer {
 
 func (gs *GameServer) Start() {
 	log.Fatal(gs.ListenAndServe())
-}
-
-func (gs *GameServer) New_Game(size_x, size_y int) {
-	gs.Games = append(gs.Games, game.New_Game(gs.UID_Generator.Next(), size_x, size_y))
 }

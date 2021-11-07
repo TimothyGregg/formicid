@@ -32,7 +32,7 @@ func EnforceContentType_JSON(nextHandler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headerContentType := r.Header.Get("Content-Type") //https://golangbyexample.com/validate-range-http-body-golang/
 		if headerContentType != "application/json" {
-			ErrorResponse(w, "Content Type is not application/json", http.StatusUnsupportedMediaType)
+			Response_UnsupportedMediaType(w, "Content Type is not application/json")
 			return
 		}
 		nextHandler.ServeHTTP(w, r)
@@ -45,7 +45,7 @@ func LogToStderr(nextHandler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			ErrorResponse(w, "bad request", 400)
+			Response_BadRequest(w)
 		}
 		header := ""
 		for k, v := range r.Header {

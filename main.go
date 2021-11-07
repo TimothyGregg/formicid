@@ -3,7 +3,7 @@ package main
 import (
 	"sync"
 
-	api "github.com/TimothyGregg/formicid/web/api/v1.0"
+	api "github.com/TimothyGregg/formicid/web/api"
 )
 
 func main() {
