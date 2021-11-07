@@ -27,9 +27,6 @@ func New_GameServer() *GameServer {
 	// middleware routing
 	stdMiddleware := []util.Middleware{
 		util.LogToStderr,
-	}
-
-	getMiddleware := []util.Middleware{
 		util.AddAllowedOrigin,
 	}
 
@@ -38,11 +35,11 @@ func New_GameServer() *GameServer {
 	homeEP.AddHandler(http.MethodGet, ep.HomeHandler(gs.store))
 
 	gameEP := util.NewEndpoint()
-	gameEP.AddHandler(http.MethodGet, util.MiddlewareFunc(ep.GameGet(gs.store), getMiddleware...))
+	gameEP.AddHandler(http.MethodGet, ep.GameGet(gs.store))
 	gameEP.AddHandler(http.MethodPost, ep.GamePost(gs.store))
 
 	gameIDEP := util.NewEndpoint()
-	gameIDEP.AddHandler(http.MethodGet, util.MiddlewareFunc(ep.ReturnGameByID(gs.store), getMiddleware...))
+	gameIDEP.AddHandler(http.MethodGet, ep.ReturnGameByID(gs.store))
 
 	endpoints := map[string]*util.Endpoint{
 		"/":       homeEP,

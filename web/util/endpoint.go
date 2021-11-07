@@ -19,6 +19,7 @@ type Endpoint struct {
 	http.Handler
 	allow   []string
 	methods map[string]http.Handler
+	standardMiddleware []Middleware
 }
 
 func NewEndpoint() *Endpoint {
@@ -55,11 +56,10 @@ func (e *Endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func OptionsResponse(e *Endpoint) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		headerContent := make(map[string]string)
-		headerContent["Cache-Control"] = "max-age=604800" // 1 week in seconds
 		headerContent["Allow"] = strings.Join(e.allow[:], ", ")
 		headerContent["Access-Control-Allow-Origin"] = "*"
 		headerContent["Access-Control-Allow-Methods"] = strings.Join(e.allow[:], ", ")
-		headerContent["Access-Control-Allow-Headers"] = "Content-Type, Access-Control-Allow-Origin"
+		headerContent["Access-Control-Allow-Headers"] = "Content-Type"
 		Response_NoContent(w, headerContent)
 	}
 }
