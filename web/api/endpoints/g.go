@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/TimothyGregg/formicid/web/api/actions"
 	"github.com/TimothyGregg/formicid/web/api/storage"
 	"github.com/TimothyGregg/formicid/web/util"
 )
@@ -25,19 +24,11 @@ func GameGet(s *storage.Store) http.HandlerFunc {
 func GamePost(s *storage.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get response body
-		body, err := ioutil.ReadAll(r.Body)
+		_, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			util.Response_BadRequest(w)
 			return
 		}
-
-		// ensure the action is properly formed
-		_, err = actions.NewAction(body)
-		if err != nil {
-			util.Response_BadRequest(w, "Malformed action")
-			return
-		}
-		fmt.Println("WE GOT TO HERE")
 
 		s.New_Game(500, 500)
 	}
