@@ -27,7 +27,7 @@ func New_GameServer() *GameServer {
 	// middleware routing
 	stdMiddleware := []util.Middleware{
 		util.LogToStderr,
-		util.AddAllowedOrigin,
+		util.FixCORS,
 	}
 
 	// endpoint creation
