@@ -3,7 +3,6 @@ package endpoints
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/TimothyGregg/formicid/web/api/storage"
@@ -16,20 +15,9 @@ func GameGet(s *storage.Store) http.HandlerFunc {
 		if len(s.Games) == 0 {
 			util.Response_NotFound(w, "No Games at all *shrug*")
 		} else {
-			json.NewEncoder(w).Encode(s.Games)
-		}
-	}
-}
-
-func GamePost(s *storage.Store) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// get response body
-		_, err := ioutil.ReadAll(r.Body)
+			bytes, err := json.MarshalIndent(g.games, "", "\t")
 		if err != nil {
-			util.Response_BadRequest(w)
-			return
-		}
-
-		s.New_Game(500, 500)
+			util.Res
+		}	
 	}
 }

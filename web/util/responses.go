@@ -54,7 +54,7 @@ func Response_NotFound(w http.ResponseWriter, additionalMessages ...string) {
 
 // 405 Method Not Allowed
 func Response_MethodNotAllowed(w http.ResponseWriter, allowedMethods []string) {
-	// Header
+	// Header]\]\]\\
 	w.Header().Set("Content-type", "application/json")
 	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	w.Header().Set("Allow", strings.Join(allowedMethods, ", "))
@@ -82,4 +82,10 @@ func Response_UnsupportedMediaType(w http.ResponseWriter, additionalMessages ...
 		}
 		jsonResp, _ := json.Marshal(resp)
 		w.Write(jsonResp)
+}
+
+// 503 Service Unavailable
+func Response_ServerUnavailable(w http.ResponseWriter) {
+	// Header
+	w.Header().Set("Content-Type", "application/")
 }

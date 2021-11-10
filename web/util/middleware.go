@@ -69,23 +69,3 @@ func FixCORS(nextHandler http.Handler) http.Handler {
 		nextHandler.ServeHTTP(w, r)
 	})
 }
-
-/*
-	// build router and middleware stack
-	router := mux.NewRouter().StrictSlash(true)
-	stdMWStack := []Middleware{
-		EnforceContentType_JSON,
-		LogToStdout,
-	}
-
-	// endpoints
-	endpoints := map[string]Endpoint{
-		"/":       gs.homeEndpoint,
-		"/g":      gs.gameEndpoint,
-		"/g/{id}": gs.returnGameByID,
-	}
-
-	for endpoint_path, handler_func := range endpoints {
-		router.HandleFunc(endpoint_path, MiddlewareStack(handler_func, stdMWStack...))
-	}
-*/
