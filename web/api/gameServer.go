@@ -42,7 +42,7 @@ func New_GameServer() *GameServer {
 	gameIDEP.AddHandler(http.MethodGet, ep.ReturnGameByID(gs.store))
 
 	endpoints := map[string]*util.Endpoint{
-		"/":       homeEP,
+		"/":           homeEP,
 		"/games":      gamesEP,
 		"/games/{id}": gameIDEP,
 	}
