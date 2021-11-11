@@ -64,7 +64,7 @@ func LogToStderr(nextHandler http.Handler) http.Handler {
 // Access-Control-Allow-Origin
 func FixCORS(nextHandler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://www.formicid.io")
+		w.Header().Set("Access-Control-Allow-Origin", "https://www.formicid.io")
 		w.Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Origin")
 		nextHandler.ServeHTTP(w, r)
 	})
