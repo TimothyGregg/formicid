@@ -6,22 +6,21 @@ import (
 	"fmt"
 	"math/rand"
 
-	graph "github.com/TimothyGregg/formicid/game/graph"
-	tools "github.com/TimothyGregg/formicid/game/tools"
+	util "github.com/TimothyGregg/formicid/game/util"
+	graph "github.com/TimothyGregg/formicid/game/util/graph"
 )
 
 type Board struct {
 	Element
-	graph              *graph.Graph
+	graph.Graph
 	Nodes              map[int]*Node `json:"-"`
 	Paths              map[int]*Path `json:"-"`
-	node_vertices 	   map[*graph.Vertex]*Node
 	node_connections   map[*Node][]*Node
 	Size_x             int `json:"size_x"`
 	Size_y             int `json:"size_y"`
 	radius_channel     chan int
-	node_uid_generator *tools.UID_Generator
-	edge_uid_generator *tools.UID_Generator
+	node_uid_generator *util.UID_Generator
+	edge_uid_generator *util.UID_Generator
 }
 
 func (b *Board) MarshalJSON() ([]byte, error) {
@@ -72,11 +71,11 @@ func (b Board) String() string {
 	}
 	for _, path := range b.Paths {
 		var n1, n2 int
-		v1, v2 := path.edge.Vertices()
+		v1, v2 := path.Vertices()
 		for i, node := range b.Nodes {
-			if v1 == node.vertex {
+			if v1 == node {
 				n1 = i
-			} else if v2 == node.vertex {
+			} else if v2 == node {
 				n2 = i
 			}
 		}
@@ -87,17 +86,15 @@ func (b Board) String() string {
 
 func New_Board() *Board {
 	b := &Board{}
-	b.New(0)
-	b.graph = graph.New_Graph()
+	b.Graph = *graph.New_Graph()
+	b.Element.New(0)
 	b.Nodes = make(map[int]*Node)
 	b.Paths = make(map[int]*Path)
-	b.node_vertices = make(map[*graph.Vertex]*Node)
 	b.node_connections = map[*Node][]*Node{}
 	b.radius_channel = make(chan int)
-	b.node_uid_generator = tools.New_UID_Generator()
-	b.edge_uid_generator = tools.New_UID_Generator()
+	b.node_uid_generator = util.New_UID_Generator()
+	b.edge_uid_generator = util.New_UID_Generator()
 	go b.init_radii_generation()
-
 	return b
 }
 
@@ -127,11 +124,13 @@ func (b *Board) add_node(x, y int, radius int) error {
 	} else if y < 0 || y > b.Size_y-1 {
 		return errors.New("y-position outside board boundaries")
 	}
-	v, err := b.graph.Add_Vertex(x, y)
+	_, err := b.Add_Vertex(x, y) // This is gonna be wrong
+	if err != nil {
+		return err
+	}
 	next_uid := b.node_uid_generator.Next()
-	b.Nodes[next_uid] = New_Node(next_uid, radius, v)
-	b.node_vertices[v] = b.Nodes[next_uid]
-	return err
+	b.Nodes[next_uid] = New_Node(next_uid, x, y, <-b.radius_channel)
+	return nil
 }
 
 func (b *Board) connect_nodes(n1 *Node, n2 *Node) error {
@@ -145,7 +144,7 @@ func (b *Board) connect_nodes(n1 *Node, n2 *Node) error {
 		return errors.New("connection already exists on the board")
 	}
 	e, err := b.graph.Add_Edge(n1.vertex, n2.vertex) // This line WILL error quite often
-	_, ok := err.(*graph.EdgeAlreadyExistsError) // This checks to make sure it's the correct kind of error
+	_, ok := err.(*graph.EdgeAlreadyExistsError)     // This checks to make sure it's the correct kind of error
 	if err != nil && !ok {
 		return err
 	}

@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	colors "github.com/TimothyGregg/formicid/game/graphics"
-	tools "github.com/TimothyGregg/formicid/game/tools"
+	tools "github.com/TimothyGregg/formicid/game/util"
 )
 
 type Team struct {
 	Element
-	Color                      colors.Color `json:"-"`
-	unit_UID_Generator         *tools.UID_Generator
+	Color              colors.Color `json:"-"`
+	unit_UID_Generator *tools.UID_Generator
 }
 
 func (t *Team) MarshalJSON() ([]byte, error) {

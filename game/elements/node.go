@@ -5,15 +5,15 @@ import (
 	"errors"
 	"math"
 
-	graph "github.com/TimothyGregg/formicid/game/graph"
+	graph "github.com/TimothyGregg/formicid/game/util/graph"
 )
 
 type Node struct {
 	Element
-	vertex          *graph.Vertex
-	Radius          int `json:"radius"`
-	Population      int `json:"popuation"`
-	Team            *Team `json:"-"`
+	graph.Vertex
+	Radius     int   `json:"radius"`
+	Population int   `json:"popuation"`
+	Team       *Team `json:"-"`
 }
 
 func (n *Node) MarshalJSON() ([]byte, error) {
@@ -26,33 +26,35 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 		team = n.Team.UID
 	}
 	return json.Marshal(&struct {
-		Team int `json:"teamID"`
+		Team     int    `json:"teamID"`
 		Position [2]int `json:"position"`
 		*Alias
 	}{
-		Team: team,
+		Team:     team,
 		Position: [2]int{x_pos, y_pos},
-		Alias: (*Alias)(n),
+		Alias:    (*Alias)(n),
 	})
 }
 
-func New_Node(uid, radius int, v *graph.Vertex) *Node {
-	n := &Node{vertex: v, Radius: radius}
+func New_Node(uid, x, y, radius int) *Node {
+	n := &Node{Radius: radius}
 	n.New(uid)
+	n.Vertex.X = x
+	n.Vertex.Y = y
 	return n
 }
 
 func (n Node) String() string {
-	return n.vertex.String()
+	return n.String()
 }
 
 func (n *Node) Get() (int, int, int) {
-	x, y := n.vertex.Position()
+	x, y := n.Position()
 	return x, y, n.Radius
 }
 
 func (node *Node) node_distance(x, y int) float64 {
-	nx, ny := node.vertex.Position()
+	nx, ny := node.Position()
 	val := math.Pow(float64(nx-x), 2)
 	return math.Sqrt(val + math.Pow(float64(ny-y), 2))
 }

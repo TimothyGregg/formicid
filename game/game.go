@@ -5,7 +5,7 @@ import (
 
 	elements "github.com/TimothyGregg/formicid/game/elements"
 	graphics "github.com/TimothyGregg/formicid/game/graphics"
-	"github.com/TimothyGregg/formicid/game/tools"
+	util "github.com/TimothyGregg/formicid/game/util"
 )
 
 // An similar concept: https://np.ironhelmet.com/
@@ -14,7 +14,7 @@ type Game struct {
 	UID                int              `json:"uid"`
 	Board              *elements.Board  `json:"board"`
 	Teams              []*elements.Team `json:"teams"`
-	team_uid_generator *tools.UID_Generator
+	team_uid_generator *util.UID_Generator
 }
 
 func (g *Game) MarshalJSON() ([]byte, error) {
@@ -43,7 +43,7 @@ func (g *Game) generate_teams() { // Improve to randomize colors
 
 func New_Game(uid, size_x, size_y int) *Game {
 	g := &Game{UID: uid}
-	g.team_uid_generator = tools.New_UID_Generator()
+	g.team_uid_generator = util.New_UID_Generator()
 	g.generate_board(size_x, size_y)
 	g.generate_teams()
 	return g
