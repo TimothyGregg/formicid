@@ -2,17 +2,17 @@ package storage
 
 import (
 	"github.com/TimothyGregg/formicid/game"
-	"github.com/TimothyGregg/formicid/game/tools"
+	"github.com/TimothyGregg/formicid/game/util/uid"
 )
 
 type Store struct {
 	Games         []*game.Game
-	UID_Generator *tools.UID_Generator
+	UID_Generator *uid.UID_Generator
 }
 
 func NewStore() *Store {
 	s := &Store{}
-	s.UID_Generator = tools.New_UID_Generator()
+	s.UID_Generator = uid.New_UID_Generator()
 	return s
 }
 

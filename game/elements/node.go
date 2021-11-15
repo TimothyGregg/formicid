@@ -2,99 +2,57 @@ package elements
 
 import (
 	"encoding/json"
-	"errors"
-	"math"
+	"fmt"
 
-	graph "github.com/TimothyGregg/formicid/game/util/graph"
+	"github.com/TimothyGregg/formicid/game/util/uid"
 )
 
 type Node struct {
 	Element
-	graph.Vertex
-	Radius     int   `json:"radius"`
-	Population int   `json:"popuation"`
-	Team       *Team `json:"-"`
+	X      int `json:"x"`
+	Y      int `json:"y"`
+	Radius int `json:"radius"`
+	// Population int `json:"population"`
+}
+
+func NewNode(uid *uid.UID, x, y, radius int) *Node {
+	n := &Node{Radius: radius}
+	n.UID = uid
+	n.X = x
+	n.Y = y
+	return n
 }
 
 func (n *Node) MarshalJSON() ([]byte, error) {
 	type Alias Node
-	x_pos, y_pos, _ := n.Get()
-	var team int
-	if n.Team == nil {
-		team = -1
-	} else {
-		team = n.Team.UID
-	}
 	return json.Marshal(&struct {
-		Team     int    `json:"teamID"`
 		Position [2]int `json:"position"`
 		*Alias
 	}{
-		Team:     team,
-		Position: [2]int{x_pos, y_pos},
+		Position: [2]int{n.X, n.Y},
 		Alias:    (*Alias)(n),
 	})
 }
 
-func New_Node(uid, x, y, radius int) *Node {
-	n := &Node{Radius: radius}
-	n.New(uid)
-	n.Vertex.X = x
-	n.Vertex.Y = y
-	return n
+func (n *Node) UnmarshalJSON(data []byte) error {
+	type Alias Node
+	aux := struct {
+		Position [2]int `json:"position"`
+		*Alias
+	}{
+		Alias: (*Alias)(n),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	n.X = aux.Position[0]
+	n.Y = aux.Position[1]
+	return nil
 }
 
 func (n Node) String() string {
-	return n.String()
+	return fmt.Sprintf("Node %d @ (%d, %d)", n.UID.Value(), n.X, n.Y)
 }
-
-func (n *Node) Get() (int, int, int) {
-	x, y := n.Position()
-	return x, y, n.Radius
-}
-
-func (node *Node) node_distance(x, y int) float64 {
-	nx, ny := node.Position()
-	val := math.Pow(float64(nx-x), 2)
-	return math.Sqrt(val + math.Pow(float64(ny-y), 2))
-}
-
-func (n *Node) change_population(val int) (int, error) {
-	rem := -1 * (n.Population + val)
-	n.Population += val
-	if n.Population < 0 {
-		n.Population = 0
-		return rem, nil
-	}
-	return 0, nil
-}
-
-func (n *Node) New_Unit(val int) (*Unit, error) {
-	if val > n.Population {
-		return nil, errors.New("cannot create a unit with more population than the node")
-	} else if val <= 0 {
-		return nil, errors.New("unit created with power less than 1")
-	}
-	u := New_Unit(n.Team.Next_Unit_UID(), val)
-	u.Team = n.Team
-	n.change_population(-1 * val)
-	return u, nil
-}
-
-/*
-func (n *Node) interact(u Unit) {
-	if n.Team == u.Team {
-		n.change_population(u.Population)
-	} else {
-		rem, _ := n.change_population(-1 * u.Population)
-		if rem > 0 {
-			n.Population = rem
-			n.Team = u.Team
-		}
-	}
-	u.Destroy()
-}
-*/
 
 func (n *Node) update() error {
 	n.Element.update()

@@ -2,54 +2,9 @@ package graph
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/fogleman/delaunay"
 )
-
-type Vertex struct {
-	X int `json:"x"`
-	Y int `json:"y`
-}
-
-func (v *Vertex) Position() (int, int) {
-	return v.X, v.Y
-}
-
-func (v Vertex) String() string {
-	return "(" + fmt.Sprint(v.X) + ", " + fmt.Sprint(v.Y) + ")"
-}
-
-func (v1 *Vertex) Same_As(v2 *Vertex) bool {
-	return v1.X == v2.X && v1.Y == v2.Y
-}
-
-type Edge struct {
-	v1, v2 *Vertex
-	length float64
-}
-
-func (e *Edge) Length() float64 {
-	return e.length
-}
-
-func NewEdge(v1, v2 *Vertex) *Edge {
-	e := &Edge{v1: v1, v2: v2}
-	e.length = float64(math.Sqrt(math.Pow(float64(v2.X-v1.X), 2) + math.Pow(float64(v2.Y-v1.Y), 2)))
-	return e
-}
-
-func (e *Edge) Vertices() (*Vertex, *Vertex) {
-	return e.v1, e.v2
-}
-
-func (e Edge) String() string {
-	return fmt.Sprint(e.v1) + " to " + fmt.Sprint(e.v2)
-}
-
-func (e1 *Edge) same_as(e2 *Edge) bool {
-	return (e1.v1 == e2.v1 && e1.v2 == e2.v2) || (e1.v1 == e2.v2 && e1.v2 == e2.v1)
-}
 
 type Graph struct {
 	Vertices  []*Vertex

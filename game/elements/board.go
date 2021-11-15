@@ -4,23 +4,164 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 
-	util "github.com/TimothyGregg/formicid/game/util"
-	graph "github.com/TimothyGregg/formicid/game/util/graph"
+	"github.com/TimothyGregg/formicid/game/util/graph"
+	"github.com/TimothyGregg/formicid/game/util/uid"
 )
 
 type Board struct {
 	Element
-	graph.Graph
-	Nodes              map[int]*Node `json:"-"`
-	Paths              map[int]*Path `json:"-"`
-	node_connections   map[*Node][]*Node
-	Size_x             int `json:"size_x"`
-	Size_y             int `json:"size_y"`
-	radius_channel     chan int
-	node_uid_generator *util.UID_Generator
-	edge_uid_generator *util.UID_Generator
+	Nodes           map[*uid.UID]*Node `json:"-"`
+	Paths           map[*uid.UID]*Path `json:"-"`
+	NodeConnections map[*Node][]*Node  `json:"-"`
+	Size            [2]int             `json:"size"`
+}
+
+func New_Board(board_uid *uid.UID, size_x, size_y int) (*Board, error) {
+	b := &Board{}
+	b.UID = board_uid
+	b.Size = [2]int{size_x, size_y}
+	g := *graph.New_Graph()
+	b.Nodes = make(map[*uid.UID]*Node)
+	b.Paths = make(map[*uid.UID]*Path)
+
+	b.NodeConnections = make(map[*Node][]*Node)
+
+	node_uid_generator := uid.New_UID_Generator()
+	edge_uid_generator := uid.New_UID_Generator()
+
+	// Radius generation
+	radius_channel := make(chan int)
+	go func() {
+		for {
+			radius_channel <- 10
+		}
+	}()
+
+	// Generate Nodes
+	node_vertices := make(map[*graph.Vertex]*Node)
+	add_node := func(x, y, radius int) error {
+		if x < 0 || x > size_x-1 {
+			return errors.New("x-position outside board boundaries")
+		} else if y < 0 || y > size_y-1 {
+			return errors.New("y-position outside board boundaries")
+		}
+		v, err := g.Add_Vertex(x, y)
+		if err != nil {
+			return err
+		}
+		next_uid := node_uid_generator.Next()
+		b.Nodes[next_uid] = NewNode(next_uid, x, y, <-radius_channel)
+		node_vertices[v] = b.Nodes[next_uid]
+		return nil
+	}
+
+	fill_tries := 100
+	for i := 0; i < fill_tries; i++ {
+		for {
+			guess_x := rand.Intn(int(size_x))
+			guess_y := rand.Intn(int(size_y))
+			next_radius := <-radius_channel
+			good := true
+			for _, node := range b.Nodes {
+				if func(node *Node, x, y int) float64 {
+					val := math.Pow(float64(node.X-x), 2)
+					return math.Sqrt(val + math.Pow(float64(node.Y-y), 2))
+				}(node, guess_x, guess_y) < float64(node.Radius+next_radius) {
+					good = false
+					break
+				}
+			}
+			if good {
+				add_node(guess_x, guess_y, next_radius)
+			} else {
+				break
+			}
+		}
+	}
+
+	// Connect Nodes
+	node_from_vertex := func(v *graph.Vertex) (*Node, error) {
+		n, ok := node_vertices[v]
+		if !ok {
+			return nil, errors.New("vertex not in node-vertex map")
+		}
+		return n, nil
+	}
+
+	g.Connect_Delaunay()
+	avg := 0.0
+	for it, e := range g.Edges {
+		v1, v2 := e.Vertices()
+		n1, _ := node_from_vertex(v1)
+		n2, _ := node_from_vertex(v2)
+		// Make connection
+		e, err := g.Add_Edge(v1, v2)                 // This line WILL error quite often
+		_, ok := err.(*graph.EdgeAlreadyExistsError) // This checks to make sure it's the correct kind of error
+		if err != nil && !ok {
+			return nil, err
+		}
+		func(n1, n2 *Node) error {
+			next_uid := edge_uid_generator.Next()
+			b.Paths[next_uid] = New_Path(next_uid, n1, n2)
+			b.NodeConnections[n1] = append(b.NodeConnections[n1], n2)
+			b.NodeConnections[n2] = append(b.NodeConnections[n2], n1)
+			return err
+		}(n1, n2)
+		if it > 0 {
+			avg = avg*(float64(it)-1)/float64(it) + e.Length()/float64(it)
+		} else {
+			avg = e.Length()
+		}
+	}
+	// Prune unwanted connections
+	var to_disconnect []*uid.UID
+	for _, p := range b.Paths {
+		if p.Length > 2.5*avg {
+			to_disconnect = append(to_disconnect, p.UID)
+		}
+	}
+	for _, uid_to_be_rid_of := range to_disconnect {
+		func(uid *uid.UID) error {
+			_, ok := b.Paths[uid_to_be_rid_of]
+			if !ok {
+				return errors.New("Path not found")
+			}
+			// Remove connections from the adjacency map
+			n1, n2 := b.Paths[uid_to_be_rid_of].Nodes[0], b.Paths[uid_to_be_rid_of].Nodes[1]
+			for i, n_test := range b.NodeConnections[n1] {
+				if n_test == n2 {
+					b.NodeConnections[n1] = append(b.NodeConnections[n1][:i], b.NodeConnections[n1][i+1:]...)
+					break
+				}
+			}
+			for i, n_test := range b.NodeConnections[n2] {
+				if n_test == n1 {
+					b.NodeConnections[n2] = append(b.NodeConnections[n2][:i], b.NodeConnections[n2][i+1:]...)
+					break
+				}
+			}
+			// Delete Path
+			delete(b.Paths, uid_to_be_rid_of)
+			return nil
+		}(uid_to_be_rid_of)
+	}
+
+	return b, nil
+}
+
+func (b Board) String() string {
+	outstr := fmt.Sprintf("Board %d:", b.UID.Value())
+	for _, n := range b.Nodes {
+		outstr += n.String() + ", "
+	}
+	outstr = outstr[:len(outstr)-2]
+	for _, p := range b.Paths {
+		outstr += p.String() + ", "
+	}
+	return outstr[:len(outstr)-2]
 }
 
 func (b *Board) MarshalJSON() ([]byte, error) {
@@ -51,249 +192,6 @@ func (b *Board) Update() error {
 	}
 	for _, e := range b.Paths {
 		e.update()
-	}
-	return nil
-}
-
-func (b *Board) Get_Size() [2]int {
-	return [2]int{b.Size_x, b.Size_y}
-}
-
-// Temp
-func (b *Board) Get_node_connections() map[*Node][]*Node {
-	return b.node_connections
-}
-
-func (b Board) String() string {
-	outstr := ""
-	for i, node := range b.Nodes {
-		outstr = outstr + "[" + fmt.Sprint(i) + "]: " + node.String() + "\n"
-	}
-	for _, path := range b.Paths {
-		var n1, n2 int
-		v1, v2 := path.Vertices()
-		for i, node := range b.Nodes {
-			if v1 == node {
-				n1 = i
-			} else if v2 == node {
-				n2 = i
-			}
-		}
-		outstr = outstr + fmt.Sprint(n1) + " to " + fmt.Sprint(n2) + "; "
-	}
-	return outstr
-}
-
-func New_Board() *Board {
-	b := &Board{}
-	b.Graph = *graph.New_Graph()
-	b.Element.New(0)
-	b.Nodes = make(map[int]*Node)
-	b.Paths = make(map[int]*Path)
-	b.node_connections = map[*Node][]*Node{}
-	b.radius_channel = make(chan int)
-	b.node_uid_generator = util.New_UID_Generator()
-	b.edge_uid_generator = util.New_UID_Generator()
-	go b.init_radii_generation()
-	return b
-}
-
-func (b *Board) init_radii_generation() {
-	for {
-		b.radius_channel <- 10 // rand.Intn(10) + 10
-	}
-}
-
-func (b *Board) Set_Size(dims [2]int) error {
-	if dims[0] < 1 || dims[1] < 1 {
-		return errors.New("dimensions for a board cannot be less than 1")
-	}
-	b.Size_x = dims[0]
-	b.Size_y = dims[1]
-	return nil
-}
-
-func (b *Board) has(n *Node) bool {
-	_, ok := b.Nodes[n.UID]
-	return ok
-}
-
-func (b *Board) add_node(x, y int, radius int) error {
-	if x < 0 || x > b.Size_x-1 {
-		return errors.New("x-position outside board boundaries")
-	} else if y < 0 || y > b.Size_y-1 {
-		return errors.New("y-position outside board boundaries")
-	}
-	_, err := b.Add_Vertex(x, y) // This is gonna be wrong
-	if err != nil {
-		return err
-	}
-	next_uid := b.node_uid_generator.Next()
-	b.Nodes[next_uid] = New_Node(next_uid, x, y, <-b.radius_channel)
-	return nil
-}
-
-func (b *Board) connect_nodes(n1 *Node, n2 *Node) error {
-	if !b.has(n1) || !b.has(n2) {
-		return errors.New("one or more nodes do not exist on the board")
-	}
-	already, err := b.check_connected(n1, n2)
-	if err != nil {
-		return err
-	} else if already {
-		return errors.New("connection already exists on the board")
-	}
-	e, err := b.graph.Add_Edge(n1.vertex, n2.vertex) // This line WILL error quite often
-	_, ok := err.(*graph.EdgeAlreadyExistsError)     // This checks to make sure it's the correct kind of error
-	if err != nil && !ok {
-		return err
-	}
-	next_uid := b.edge_uid_generator.Next()
-	b.Paths[next_uid] = New_Path(next_uid, e)
-	b.node_connections[n1] = append(b.node_connections[n1], n2)
-	b.node_connections[n2] = append(b.node_connections[n2], n1)
-	return err
-}
-
-func (b *Board) disconnect_path(uid int) error {
-	_, ok := b.Paths[uid]
-	if !ok {
-		return errors.New("Path not found")
-	}
-	// Ensure the nodes on the path are connected
-	v1, v2 := b.Paths[uid].Vertices()
-	n1, err := b.get_node_from_vertex(v1)
-	if err != nil {
-		return err
-	}
-	n2, err := b.get_node_from_vertex(v2)
-	if err != nil {
-		return err
-	}
-	already, err := b.check_connected(n1, n2)
-	if err != nil {
-		return err
-	} else if !already {
-		return errors.New("cannot disconnect non-connected nodes")
-	}
-	// Remove connections from the adjacency map
-	for i, n_test := range b.node_connections[n1] {
-		if n_test == n2 {
-			b.node_connections[n1] = append(b.node_connections[n1][:i], b.node_connections[n1][i+1:]...)
-			break
-		}
-	}
-	for i, n_test := range b.node_connections[n2] {
-		if n_test == n1 {
-			b.node_connections[n2] = append(b.node_connections[n2][:i], b.node_connections[n2][i+1:]...)
-			break
-		}
-	}
-	// Delete Path
-	delete(b.Paths, uid)
-	return nil
-}
-
-func (b *Board) check_connected(n1 *Node, n2 *Node) (bool, error) {
-	n1c := b.node_connections[n1]
-	n2c := b.node_connections[n2]
-	n1ton2, n2ton1 := false, false
-	for _, n_test := range n2c {
-		if n1 == n_test {
-			n2ton1 = true
-		}
-	}
-	for _, n_test := range n1c {
-		if n2 == n_test {
-			n1ton2 = true
-		}
-	}
-	if n1ton2 == n2ton1 {
-		return n1ton2, nil
-	}
-	return false, errors.New("disagreement in connection lists")
-}
-
-func (b *Board) get_node_from_vertex(v *graph.Vertex) (*Node, error) {
-	n, ok := b.node_vertices[v]
-	if !ok {
-		return nil, errors.New("vertex not in node-vertex map")
-	}
-	return n, nil
-}
-
-func (b *Board) Fill() error {
-	err := b.naive_fill(100)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (b *Board) naive_fill(tries int) error {
-	for i := 0; i < tries; i++ {
-		for {
-			if !b.add_random_node() {
-				break
-			}
-		}
-	}
-	return nil
-}
-
-func (b *Board) add_random_node() bool {
-	guess_x := rand.Intn(int(b.Size_x))
-	guess_y := rand.Intn(int(b.Size_y))
-	next_radius := <-b.radius_channel
-	good := true
-	for _, node := range b.Nodes {
-		if node.node_distance(guess_x, guess_y) < float64(node.Radius+next_radius) {
-			good = false
-			break
-		}
-	}
-	if good {
-		b.add_node(guess_x, guess_y, next_radius)
-	}
-	return good
-}
-
-func (b *Board) Connect() error {
-	err := b.connect_delaunay()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (b *Board) connect_delaunay() error {
-	b.graph.Connect_Delaunay()
-	avg := 0.0
-	for it, e := range b.graph.Edges {
-		v1, v2 := e.Vertices()
-		n1, err := b.get_node_from_vertex(v1)
-		if err != nil {
-			return err
-		}
-		n2, err := b.get_node_from_vertex(v2)
-		if err != nil {
-			return err
-		}
-		b.connect_nodes(n1, n2)
-		if it > 0 {
-			avg = avg*(float64(it)-1)/float64(it) + e.Length()/float64(it)
-		} else {
-			avg = e.Length()
-		}
-	}
-	var to_disconnect []int
-	for _, p := range b.Paths {
-		if p.edge.Length() > 2.5*avg {
-			to_disconnect = append(to_disconnect, p.UID)
-		}
-	}
-	for _, uid := range to_disconnect {
-		b.disconnect_path(uid)
 	}
 	return nil
 }

@@ -2,39 +2,37 @@ package elements
 
 import (
 	"encoding/json"
+	"fmt"
+	"math"
 
-	graph "github.com/TimothyGregg/formicid/game/util/graph"
+	"github.com/TimothyGregg/formicid/game/util/uid"
 )
 
 type Path struct {
 	Element
-	graph.Edge
+	Nodes  [2]*Node `json:"nodes"`
+	Length float64  `json:"length"`
 }
 
 func (p *Path) MarshalJSON() ([]byte, error) {
 	type Alias Path
-	v1, v2 := p.Vertices()
 	return json.Marshal(&struct {
-		Vertices [2]*Node `json:"nodes"`
 		*Alias
 	}{
-		Vertices: [2]*Node{v1, v2},
-		Alias:    (*Alias)(p),
+		Alias: (*Alias)(p),
 	})
 }
 
-func New_Path(uid int) *Path {
-	p := &Path{}
-	p.New(uid)
+func New_Path(uid *uid.UID, n1, n2 *Node) *Path {
+	p := &Path{Nodes: [2]*Node{n1, n2}}
+	p.UID = uid
+	val := math.Pow(float64(n1.X-n2.X), 2)
+	p.Length = math.Sqrt(val + math.Pow(float64(n1.Y-n2.Y), 2))
 	return p
 }
 
 func (p Path) String() string {
-	return p.String()
-}
-
-func (p *Path) Vertices() (*Node, *Node) {
-	return p.Vertices()
+	return fmt.Sprintf("Path from Node %d to Node %d", p.Nodes[0].UID.Value(), p.Nodes[1].UID.Value())
 }
 
 func (p *Path) update() error {
