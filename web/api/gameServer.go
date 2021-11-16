@@ -36,7 +36,7 @@ func New_GameServer() *GameServer {
 
 	gamesEP := util.NewEndpoint()
 	gamesEP.AddHandler(http.MethodGet, ep.GameGet(gs.store))
-	gamesEP.AddHandler(http.MethodPost, ep.GamePost(gs.store))
+	//gamesEP.AddHandler(http.MethodPost, ep.GamePost(gs.store))
 
 	gameIDEP := util.NewEndpoint()
 	gameIDEP.AddHandler(http.MethodGet, ep.ReturnGameByID(gs.store))

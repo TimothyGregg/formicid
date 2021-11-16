@@ -15,9 +15,11 @@ func GameGet(s *storage.Store) http.HandlerFunc {
 		if len(s.Games) == 0 {
 			util.Response_NotFound(w, "No Games at all *shrug*")
 		} else {
-			bytes, err := json.MarshalIndent(g.games, "", "\t")
-		if err != nil {
-			util.Res
-		}	
+			_, err := json.MarshalIndent(s.Games, "", "\t")
+			if err != nil {
+				util.Response_ServerUnavailable(w)
+			}
+			json.NewEncoder(w).Encode(s.Games)	
+		}
 	}
 }
