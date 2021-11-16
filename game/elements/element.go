@@ -1,22 +1,18 @@
 package elements
 
-type Element struct {
-	UID   int `json:"e_uid"`
-	timer uint8
-}
+import (
+	"github.com/TimothyGregg/formicid/game/util/uid"
+)
 
-func (e *Element) New(uid int) {
-	e.UID = uid
+type Element struct {
+	UID   *uid.UID `json:"uid"`
+	Timer uint8    `json:"timer"`
 }
 
 func (e *Element) tick() {
-	e.timer = (e.timer + 1) % 60
+	e.Timer = (e.Timer + 1) % 60
 }
 
 func (e *Element) update() {
 	e.tick()
-}
-
-func (e *Element) Timer() uint8 {
-	return e.timer
 }

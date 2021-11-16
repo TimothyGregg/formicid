@@ -42,7 +42,7 @@ func New_GameServer() *GameServer {
 	gameIDEP.AddHandler(http.MethodGet, ep.ReturnGameByID(gs.store))
 
 	endpoints := map[string]*util.Endpoint{
-		"/":       homeEP,
+		"/":           homeEP,
 		"/games":      gamesEP,
 		"/games/{id}": gameIDEP,
 	}
@@ -63,5 +63,14 @@ func New_GameServer() *GameServer {
 }
 
 func (gs *GameServer) Start() {
-	log.Fatal(gs.ListenAndServe())
+	oc := os.Getenv("FORMICIDIOOC")
+	if oc == "" {
+		fmt.Println("No Cert: \"" + oc + "\"")
+	}
+	pk := os.Getenv("FORMICIDIOPK")
+	if pk == "" {
+		fmt.Println("No Key: \"" + pk + "\"")
+	}
+	fmt.Println(os.Environ())
+	log.Fatal(gs.ListenAndServeTLS(oc, pk))
 }

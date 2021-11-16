@@ -4,48 +4,31 @@ import (
 	"encoding/json"
 
 	elements "github.com/TimothyGregg/formicid/game/elements"
-	graphics "github.com/TimothyGregg/formicid/game/graphics"
-	"github.com/TimothyGregg/formicid/game/tools"
+	"github.com/TimothyGregg/formicid/game/util/uid"
 )
 
 // An similar concept: https://np.ironhelmet.com/
 
 type Game struct {
-	UID                int              `json:"uid"`
-	Board              *elements.Board  `json:"board"`
-	Teams              []*elements.Team `json:"teams"`
-	team_uid_generator *tools.UID_Generator
+	UID   *uid.UID        `json:"-"`
+	Board *elements.Board `json:"board"`
 }
 
 func (g *Game) MarshalJSON() ([]byte, error) {
 	type Alias Game
 	return json.Marshal(&struct {
+		UID int `json:"uid"`
 		*Alias
 	}{
+		UID:   g.UID.Value(),
 		Alias: (*Alias)(g),
 	})
 }
 
-func (g *Game) generate_board(size_x, size_y int) {
-	g.Board = elements.New_Board()
-	g.Board.Set_Size([2]int{size_x, size_y}) // TODO Make Variable
-	g.Board.Fill()
-	g.Board.Connect()
-}
-
-func (g *Game) generate_teams() { // Improve to randomize colors
-	for i := 0; i < 6; i++ {
-		new_number := g.team_uid_generator.Next()
-		color := graphics.Color(new_number)
-		g.Teams = append(g.Teams, elements.New_Team(color, new_number))
-	}
-}
-
-func New_Game(uid, size_x, size_y int) *Game {
-	g := &Game{UID: uid}
-	g.team_uid_generator = tools.New_UID_Generator()
-	g.generate_board(size_x, size_y)
-	g.generate_teams()
+func New_Game(game_uid, size_x, size_y int) *Game {
+	g := &Game{}
+	g.UID = uid.NewUID(game_uid)
+	g.Board, _ = elements.New_Board(uid.NewUID(0), size_x, size_y)
 	return g
 }
 
