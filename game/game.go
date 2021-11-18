@@ -25,9 +25,9 @@ func (g *Game) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func New_Game(game_uid, size_x, size_y int) *Game {
+func New_Game(game_uid *uid.UID, size_x, size_y int) *Game {
 	g := &Game{}
-	g.UID = uid.NewUID(game_uid)
+	g.UID = game_uid
 	g.Board, _ = elements.New_Board(uid.NewUID(0), size_x, size_y)
 	return g
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	game "github.com/TimothyGregg/formicid/game"
+	"github.com/TimothyGregg/formicid/game/util/uid"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -24,7 +25,7 @@ func main() {
 }
 
 func print_json() {
-	g := game.New_Game(0, 25, 25)
+	g := game.New_Game(uid.NewUID(0), 50, 50)
 	data, err := json.MarshalIndent(g, "", "\t")
 	if err != nil {
 		fmt.Println(err)
@@ -33,7 +34,7 @@ func print_json() {
 }
 
 func local_draw() {
-	g := game.New_Game(0, 1820, 980)
+	g := game.New_Game(uid.NewUID(0), 50, 50)
 
 	size := g.Board.Size
 	fmt.Println(size)
@@ -59,11 +60,14 @@ func local_draw() {
 			rl.DrawLine(int32(x1+int(border)/2), int32(y1+int(border)/2), int32(x2+int(border)/2), int32(y2+int(border)/2), rl.Red)
 		} */
 
-		for node, arr := range g.Board.NodeConnections {
+		for node_uid, arr := range g.Board.NodeConnections {
 			for _, other := range arr {
-				x1, y1 := node.X, node.Y
+				node, err := g.Board.NodeByID(node_uid)
+				if err != nil {
+					os.Exit(1)
+				}
 				x2, y2 := other.X, other.Y
-				rl.DrawLine(int32(x1+int(border)/2), int32(y1+int(border)/2), int32(x2+int(border)/2), int32(y2+int(border)/2), rl.Red)
+				rl.DrawLine(int32(node.X+int(border)/2), int32(node.Y+int(border)/2), int32(x2+int(border)/2), int32(y2+int(border)/2), rl.Red)
 			}
 		}
 

@@ -16,20 +16,12 @@ func GameGet(s *storage.Store) http.HandlerFunc {
 			util.Response_NotFound(w, "No Games at all *shrug*")
 			return
 		} else {
-<<<<<<< HEAD
-			_, err := json.MarshalIndent(s.Games, "", "\t")
-			if err != nil {
-				util.Response_ServerUnavailable(w)
-			}
-			json.NewEncoder(w).Encode(s.Games)	
-=======
 			bytes, err := json.MarshalIndent(s.Games, "", "\t")
 			if err != nil {
 				util.Response_ServerUnavailable(w)
 				return
 			}
 			w.Write(bytes)
->>>>>>> refs/remotes/origin/main
 		}
 	}
 }

@@ -15,7 +15,7 @@ type Board struct {
 	Element
 	Nodes           map[*uid.UID]*Node `json:"-"`
 	Paths           map[*uid.UID]*Path `json:"-"`
-	NodeConnections map[*Node][]*Node  `json:"-"`
+	NodeConnections map[int][]*Node    `json:"-"`
 	Size            [2]int             `json:"size"`
 }
 
@@ -27,7 +27,7 @@ func New_Board(board_uid *uid.UID, size_x, size_y int) (*Board, error) {
 	b.Nodes = make(map[*uid.UID]*Node)
 	b.Paths = make(map[*uid.UID]*Path)
 
-	b.NodeConnections = make(map[*Node][]*Node)
+	b.NodeConnections = make(map[int][]*Node)
 
 	node_uid_generator := uid.New_UID_Generator()
 	edge_uid_generator := uid.New_UID_Generator()
@@ -106,8 +106,8 @@ func New_Board(board_uid *uid.UID, size_x, size_y int) (*Board, error) {
 		func(n1, n2 *Node) error {
 			next_uid := edge_uid_generator.Next()
 			b.Paths[next_uid] = New_Path(next_uid, n1, n2)
-			b.NodeConnections[n1] = append(b.NodeConnections[n1], n2)
-			b.NodeConnections[n2] = append(b.NodeConnections[n2], n1)
+			b.NodeConnections[n1.UID.Value()] = append(b.NodeConnections[n1.UID.Value()], n2)
+			b.NodeConnections[n2.UID.Value()] = append(b.NodeConnections[n2.UID.Value()], n1)
 			return err
 		}(n1, n2)
 		if it > 0 {
@@ -132,13 +132,13 @@ func New_Board(board_uid *uid.UID, size_x, size_y int) (*Board, error) {
 			// Remove connections from the adjacency map
 			n1, n2 := b.Paths[uid_to_be_rid_of].Nodes[0], b.Paths[uid_to_be_rid_of].Nodes[1]
 			for i, n_test := range b.NodeConnections[n1] {
-				if n_test == n2 {
+				if n_test.UID.Value() == n2 {
 					b.NodeConnections[n1] = append(b.NodeConnections[n1][:i], b.NodeConnections[n1][i+1:]...)
 					break
 				}
 			}
 			for i, n_test := range b.NodeConnections[n2] {
-				if n_test == n1 {
+				if n_test.UID.Value() == n1 {
 					b.NodeConnections[n2] = append(b.NodeConnections[n2][:i], b.NodeConnections[n2][i+1:]...)
 					break
 				}
@@ -150,6 +150,15 @@ func New_Board(board_uid *uid.UID, size_x, size_y int) (*Board, error) {
 	}
 
 	return b, nil
+}
+
+func (b *Board) NodeByID(id int) (*Node, error) {
+	for uid, node := range b.Nodes {
+		if id == uid.Value() {
+			return node, nil
+		}
+	}
+	return nil, errors.New("no node found with id " + fmt.Sprint(id))
 }
 
 func (b Board) String() string {

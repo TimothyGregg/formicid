@@ -1,0 +1,205 @@
+{
+	"uid": 0,
+	"board": {
+		"nodes": [
+			{
+				"position": [
+					27,
+					13
+				],
+				"uid": {
+					"value": 5
+				},
+				"timer": 0,
+				"x": 27,
+				"y": 13,
+				"radius": 10
+			},
+			{
+				"position": [
+					31,
+					37
+				],
+				"uid": {
+					"value": 0
+				},
+				"timer": 0,
+				"x": 31,
+				"y": 37,
+				"radius": 10
+			},
+			{
+				"position": [
+					47,
+					9
+				],
+				"uid": {
+					"value": 1
+				},
+				"timer": 0,
+				"x": 47,
+				"y": 9,
+				"radius": 10
+			},
+			{
+				"position": [
+					6,
+					0
+				],
+				"uid": {
+					"value": 2
+				},
+				"timer": 0,
+				"x": 6,
+				"y": 0,
+				"radius": 10
+			},
+			{
+				"position": [
+					11,
+					45
+				],
+				"uid": {
+					"value": 3
+				},
+				"timer": 0,
+				"x": 11,
+				"y": 45,
+				"radius": 10
+			},
+			{
+				"position": [
+					7,
+					21
+				],
+				"uid": {
+					"value": 4
+				},
+				"timer": 0,
+				"x": 7,
+				"y": 21,
+				"radius": 10
+			}
+		],
+		"paths": [
+			{
+				"uid": {
+					"value": 0
+				},
+				"timer": 0,
+				"nodes": [
+					5,
+					0
+				],
+				"length": 24.331050121192877
+			},
+			{
+				"uid": {
+					"value": 2
+				},
+				"timer": 0,
+				"nodes": [
+					1,
+					5
+				],
+				"length": 20.396078054371138
+			},
+			{
+				"uid": {
+					"value": 4
+				},
+				"timer": 0,
+				"nodes": [
+					4,
+					0
+				],
+				"length": 28.844410203711913
+			},
+			{
+				"uid": {
+					"value": 5
+				},
+				"timer": 0,
+				"nodes": [
+					4,
+					3
+				],
+				"length": 24.331050121192877
+			},
+			{
+				"uid": {
+					"value": 7
+				},
+				"timer": 0,
+				"nodes": [
+					5,
+					2
+				],
+				"length": 24.698178070456937
+			},
+			{
+				"uid": {
+					"value": 8
+				},
+				"timer": 0,
+				"nodes": [
+					2,
+					4
+				],
+				"length": 21.02379604162864
+			},
+			{
+				"uid": {
+					"value": 1
+				},
+				"timer": 0,
+				"nodes": [
+					0,
+					1
+				],
+				"length": 32.2490309931942
+			},
+			{
+				"uid": {
+					"value": 3
+				},
+				"timer": 0,
+				"nodes": [
+					5,
+					4
+				],
+				"length": 21.540659228538015
+			},
+			{
+				"uid": {
+					"value": 6
+				},
+				"timer": 0,
+				"nodes": [
+					3,
+					0
+				],
+				"length": 21.540659228538015
+			},
+			{
+				"uid": {
+					"value": 9
+				},
+				"timer": 0,
+				"nodes": [
+					1,
+					2
+				],
+				"length": 41.97618372363071
+			}
+		],
+		"uid": {
+			"value": 0
+		},
+		"timer": 0,
+		"size": [
+			50,
+			50
+		]
+	}
+}
