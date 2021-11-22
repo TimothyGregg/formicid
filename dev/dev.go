@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 
+	firebase "firebase.google.com/go"
 	game "github.com/TimothyGregg/formicid/game"
 	"github.com/TimothyGregg/formicid/game/util/uid"
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"google.golang.org/api/option"
 )
 
 func main() {
@@ -20,8 +23,22 @@ func main() {
 			defer local_draw()
 		case "-j":
 			print_json()
+		case "-f":
+			firebase_dump()
 		}
 	}
+}
+
+func firebase_dump() {
+	conf := &firebase.Config{DatabaseURL: os.Getenv("FIREBASE_URL"), ProjectID: "formicid", StorageBucket: "formicid.appspot.com"}
+	opt := option.WithCredentialsFile("/home/tim/Desktop/formicid-firebase-pk.json")
+	app, err := firebase.NewApp(context.Background(), conf, opt)
+	if err != nil {
+		panic(fmt.Errorf("error initializing app: %v", err))
+	}
+	client, err := app.Database(context.Background())
+	ref := client.NewRef("/")
+	ref.Set(context.Background(), game.New_Game(uid.NewUID(0), 100, 100))
 }
 
 func print_json() {

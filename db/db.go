@@ -2,61 +2,27 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"os"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/feature/rds/auth"
+	firebase "firebase.google.com/go"
+	option "google.golang.org/api/option"
 )
 
 func main() {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	app, err := getApp()
+	fmt.Println(err)
+	client, err := app.Database(context.Background())
+	ref := client.NewRef("/test/2")
+	ref.Set(context.Background(), "hello")
+}
+
+func getApp() (*firebase.App, error) {
+	conf := &firebase.Config{DatabaseURL: os.Getenv("FIREBASE_URL"), ProjectID: "formicid", StorageBucket: "formicid.appspot.com"}
+	opt := option.WithCredentialsFile("/home/tim/Desktop/formicid-firebase-pk.json")
+	app, err := firebase.NewApp(context.Background(), conf, opt)
 	if err != nil {
-		panic("configuration error: " + err.Error())
+		return nil, fmt.Errorf("error initializing app: %v", err)
 	}
-
-	authToken, err := auth.BuildAuthToken(
-		context.TODO(),
-		os.Getenv("formicid_db_server")+":"+os.Getenv("formicid_db_port"), // Database Endpoint (With Port)
-		os.Getenv("formicid_db_region"),                                   // AWS Region
-		os.Getenv("formicid_db_user"),                                     // Database Account
-		cfg.Credentials,
-	)
-	if err != nil {
-		panic("failed to create authentication token: " + err.Error())
-	}
-
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
-		os.Getenv("formicid_db_server"),
-		os.Getenv("formicid_db_port"),
-		os.Getenv("formicid_db_user"),
-		authToken,
-		os.Getenv("formicid_db_name"),
-	)
-
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		panic(err)
-	}
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	// Amazon make things painful
-	// connString := "postgresql://" + os.Getenv("formicid_db_user") + ":" +
-	// 	os.Getenv("formicid_db_pass") + "@" +
-	// 	os.Getenv("formicid_db_server") + ":" +
-	// 	os.Getenv("formicid_db_port") + "/" +
-	// 	os.Getenv("formicid_db_name")
-	// conn, err := pgx.Connect(context.Background(), connString)
-	// fmt.Println(connString)
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-	// 	os.Exit(1)
-	// }
-	// defer conn.Close(context.Background())
-	// os.Exit(0)
+	return app, err
 }
