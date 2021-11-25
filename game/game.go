@@ -11,18 +11,24 @@ import (
 
 type Game struct {
 	UID   *uid.UID        `json:"-"`
-	Board *elements.Board `json:"board"`
+	Board *elements.Board `json:"-"`
 }
 
 func (g *Game) MarshalJSON() ([]byte, error) {
 	type Alias Game
 	return json.Marshal(&struct {
-		UID int `json:"uid"`
+		UID     int `json:"uid"`
+		BoardID int `json:"board_id"`
 		*Alias
 	}{
-		UID:   g.UID.Value(),
-		Alias: (*Alias)(g),
+		UID:     g.UID.Value(),
+		BoardID: g.Board.UID.Value(),
+		Alias:   (*Alias)(g),
 	})
+}
+
+func (g *Game) UnmarshalJSON(data []byte) error {
+	return nil
 }
 
 func New_Game(game_uid *uid.UID, size_x, size_y int) *Game {

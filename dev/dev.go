@@ -37,8 +37,12 @@ func firebase_dump() {
 		panic(fmt.Errorf("error initializing app: %v", err))
 	}
 	client, err := app.Database(context.Background())
-	ref := client.NewRef("/")
-	ref.Set(context.Background(), game.New_Game(uid.NewUID(0), 100, 100))
+	if err != nil {
+		panic(err)
+	}
+	newgame := game.New_Game(uid.NewUID(0), 100, 100)
+	ref := client.NewRef("/games/" + fmt.Sprint(newgame.UID.Value()))
+	ref.Set(context.Background(), newgame)
 }
 
 func print_json() {

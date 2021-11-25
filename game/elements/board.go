@@ -175,17 +175,17 @@ func (b Board) String() string {
 
 func (b *Board) MarshalJSON() ([]byte, error) {
 	type Alias Board
-	node_array := make([]*Node, 0, len(b.Nodes))
-	for _, node := range b.Nodes {
-		node_array = append(node_array, node)
+	node_array := make([]int, 0, len(b.Nodes))
+	for id := range b.Nodes {
+		node_array = append(node_array, id.Value())
 	}
-	path_array := make([]*Path, 0, len(b.Paths))
-	for _, path := range b.Paths {
-		path_array = append(path_array, path)
+	path_array := make([]int, 0, len(b.Paths))
+	for id := range b.Paths {
+		path_array = append(path_array, id.Value())
 	}
 	return json.Marshal(&struct {
-		Nodes []*Node `json:"nodes"`
-		Paths []*Path `json:"paths"`
+		Nodes []int `json:"nodes"`
+		Paths []int `json:"paths"`
 		*Alias
 	}{
 		Nodes: node_array,

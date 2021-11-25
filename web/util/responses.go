@@ -23,7 +23,7 @@ func Response_BadRequest(w http.ResponseWriter, additionalMessages ...string) {
 	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	w.Header().Set("Cache-Control", "no-cache")
 	w.WriteHeader(http.StatusBadRequest)
-	
+
 	// Body
 	resp := make(map[string]string)
 	resp["error"] = "Bad Request"
@@ -41,7 +41,7 @@ func Response_NotFound(w http.ResponseWriter, additionalMessages ...string) {
 	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	w.Header().Set("Cache-Control", "no-cache")
 	w.WriteHeader(http.StatusNotFound)
-	
+
 	// Body
 	resp := make(map[string]string)
 	resp["error"] = "Not Found"
@@ -59,7 +59,7 @@ func Response_MethodNotAllowed(w http.ResponseWriter, allowedMethods []string) {
 	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	w.Header().Set("Allow", strings.Join(allowedMethods, ", "))
 	w.WriteHeader(http.StatusMethodNotAllowed)
-	
+
 	// Body
 	resp := make(map[string]string)
 	resp["error"] = "Method Not Allowed"
@@ -69,23 +69,34 @@ func Response_MethodNotAllowed(w http.ResponseWriter, allowedMethods []string) {
 
 // 415 Unsupported Media Type
 func Response_UnsupportedMediaType(w http.ResponseWriter, additionalMessages ...string) {
-		// Header
-		w.Header().Set("Content-type", "application/json")
-		w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
-		w.WriteHeader(http.StatusUnsupportedMediaType)
-		
-		// Body
-		resp := make(map[string]string)
-		resp["error"] = "Unsupported Media Type"
-		if len(additionalMessages) > 0 {
-			resp["additional"] = strings.Join(additionalMessages, ", ")
-		}
-		jsonResp, _ := json.Marshal(resp)
-		w.Write(jsonResp)
+	// Header
+	w.Header().Set("Content-type", "application/json")
+	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
+	w.WriteHeader(http.StatusUnsupportedMediaType)
+
+	// Body
+	resp := make(map[string]string)
+	resp["error"] = "Unsupported Media Type"
+	if len(additionalMessages) > 0 {
+		resp["additional"] = strings.Join(additionalMessages, ", ")
+	}
+	jsonResp, _ := json.Marshal(resp)
+	w.Write(jsonResp)
 }
 
 // 503 Service Unavailable
-func Response_ServerUnavailable(w http.ResponseWriter) {
+func Response_ServerUnavailable(w http.ResponseWriter, additionalMessages ...string) {
 	// Header
 	w.Header().Set("Content-Type", "application/")
+	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
+	w.WriteHeader(http.StatusServiceUnavailable)
+
+	// Body
+	resp := make(map[string]string)
+	resp["error"] = "Service Unavailable"
+	if len(additionalMessages) > 0 {
+		resp["additional"] = strings.Join(additionalMessages, ", ")
+	}
+	jsonResp, _ := json.Marshal(resp)
+	w.Write(jsonResp)
 }

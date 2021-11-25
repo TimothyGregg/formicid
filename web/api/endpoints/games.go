@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/TimothyGregg/formicid/db"
+	"github.com/TimothyGregg/formicid/game"
 	"github.com/TimothyGregg/formicid/web/api/actions"
 	"github.com/TimothyGregg/formicid/web/api/storage"
 	"github.com/TimothyGregg/formicid/web/util"
@@ -40,6 +42,14 @@ func GamePost(s *storage.Store) http.HandlerFunc {
 			util.Response_BadRequest(w, "Malformed action")
 		}
 		// perform appropriate action
-		s.New_Game(100, 100)
+		database, err := db.GetDatabase()
+		if err != nil {
+			util.Response_ServerUnavailable(w, err.Error())
+		}
+		g := game.New_Game(s.UID_Generator.Next(), 100, 100)
+		err = database.StoreGame("/", g)
+		if err != nil {
+			util.Response_ServerUnavailable(w, err.Error())
+		}
 	}
 }
